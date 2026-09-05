@@ -10,7 +10,7 @@ import 'package:bd_shope_combined/common_wigdets/glass_background.dart';
 import 'package:bd_shope_combined/common_wigdets/glass_button.dart';
 
 class OnboardingFlow extends StatefulWidget {
-  const OnboardingFlow({Key? key}) : super(key: key);
+  const OnboardingFlow({super.key});
 
   @override
   State<OnboardingFlow> createState() => _OnboardingFlowState();
@@ -25,16 +25,19 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       'title': 'Discover Products Instantly',
       'description': 'Search by tags and categories to find exactly what you need in seconds.',
       'icon': Icons.search_outlined,
+      'gradient': [Color(0xFF53A4CA), Color(0xFF5369CA)],
     },
     {
       'title': 'Connect With Sellers',
       'description': 'Chat, Voice Call & Video Call directly with sellers for faster deal completions.',
       'icon': Icons.connect_without_contact_outlined,
+      'gradient': [Color(0xFF5369CA), Color(0xFF7953CA)],
     },
     {
       'title': 'Smart Marketplace Experience',
       'description': 'Fast and Secure Shopping tailored to save you time and maximize value.',
       'icon': Icons.shopping_bag_outlined,
+      'gradient': [Color(0xFF7953CA), Color(0xFF53A4CA)],
     },
   ];
 
@@ -94,6 +97,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                       title: page['title']!,
                       description: page['description']!,
                       icon: page['icon']!,
+                      gradientColors: page['gradient'] as List<Color>?,
                     );
                   },
                 ),
@@ -112,7 +116,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     decoration: BoxDecoration(
                       color: _currentIndex == index
                           ? const Color(0xFF53A4CA)
-                          : Colors.white.withOpacity(0.3),
+                          : (Get.isRegistered<ThemeController>() && Get.find<ThemeController>().isDarkMode.value
+                              ? Colors.white.withOpacity(0.3)
+                              : const Color(0xFF53A4CA).withOpacity(0.2)),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                   ),

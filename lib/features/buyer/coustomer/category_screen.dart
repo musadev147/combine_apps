@@ -64,6 +64,7 @@ class CategoryScreen extends StatelessWidget {
                     Get.toNamed(Routes.PRODUCT_LIST, arguments: cat['name']);
                   },
                   child: GlassCard(
+                    margin: EdgeInsets.zero,
                     borderRadius: 20.r,
                     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                     child: Row(
@@ -72,9 +73,13 @@ class CategoryScreen extends StatelessWidget {
                           padding: EdgeInsets.all(12.r),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
+                            color: const Color(0xFF53A4CA).withOpacity(0.15),
+                            border: Border.all(
+                              color: const Color(0xFF53A4CA).withOpacity(0.25),
+                              width: 1,
+                            ),
                           ),
-                          child: Icon(cat['icon'], color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, size: 24.r),
+                          child: Icon(cat['icon'], color: const Color(0xFF53A4CA), size: 24.r),
                         ),
                         SizedBox(width: 20.w),
                         Expanded(

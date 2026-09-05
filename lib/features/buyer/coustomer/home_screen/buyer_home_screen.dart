@@ -308,8 +308,9 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                     itemBuilder: (context, index) {
                       final cat = displayList[index];
                       return GlassCard(
+                        margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
                         borderRadius: 16.r,
-                        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
+                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 8.h),
                         child: InkWell(
                           onTap: () => _onCategoryTap(context, cat.id ?? "", cat.name ?? ""),
                           borderRadius: BorderRadius.circular(16.r),
@@ -317,19 +318,23 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                padding: EdgeInsets.all(8.r),
+                                padding: EdgeInsets.all(10.r),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: const Color(0xFF53A4CA).withOpacity(0.15),
+                                  border: Border.all(
+                                    color: const Color(0xFF53A4CA).withOpacity(0.25),
+                                    width: 1,
+                                  ),
                                 ),
-                                child: Icon(_getCategoryIcon(cat.name), color: const Color(0xFF53A4CA), size: 20.r),
+                                child: Icon(_getCategoryIcon(cat.name), color: const Color(0xFF53A4CA), size: 22.r),
                               ),
                               SizedBox(height: 8.h),
                               Text(
                                 cat.name ?? "",
                                 style: GoogleFonts.poppins(
-                                  color: Colors.black87,
-                                  fontSize: 10.sp,
+                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black87,
+                                  fontSize: 11.sp,
                                   fontWeight: FontWeight.w600,
                                 ),
                                 maxLines: 1,

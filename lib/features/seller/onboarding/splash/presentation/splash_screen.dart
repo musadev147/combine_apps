@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:bd_shope_combined/common_widgets/glass_background_scaffold.dart';
 import 'package:bd_shope_combined/route/app_routes.dart';
 import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/constants/app_constants.dart';

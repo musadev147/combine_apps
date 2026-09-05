@@ -180,7 +180,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     child: Text(
                       _currentPage == _onboardingData.length - 1 ? "Get Started" : "Next",
                       style: TextStyle(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        color: Colors.white,
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
                       ),
