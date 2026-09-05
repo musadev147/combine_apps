@@ -1,0 +1,41 @@
+// API operations for create_password
+import 'dart:developer';
+import 'package:bd_shope_combined/networks/dio/dio.dart';
+import 'package:bd_shope_combined/networks/exception_handler/data_source.dart';
+import 'package:bd_shope_combined/features/seller/auth/create_password/presentation/model/create_password.dart';
+import '/networks/endpoints.dart';
+
+class PostResetPasswordApi {
+  static final PostResetPasswordApi _singleton = PostResetPasswordApi._internal();
+  PostResetPasswordApi._internal();
+  static PostResetPasswordApi get instance => _singleton;
+
+  Future<PostResetPasswordModel> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String passwordConfirmation,
+  }) async {
+    log('resetPassword for: $email');
+
+    try {
+      final data = {
+        'email': email,
+        'otp': otp,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      };
+
+      final response = await postHttp(Endpoints.forgotNewPassword(), data);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return PostResetPasswordModel.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw DataSource.DEFAULT.getFailure();
+      }
+    } catch (error) {
+      log('RESET PASSWORD API ERROR: $error');
+      rethrow;
+    }
+  }
+}

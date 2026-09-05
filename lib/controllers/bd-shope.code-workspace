@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"name": "bd-shope",
+			"path": "../.."
+		},
+		{
+			"path": "../../../damadami_seller"
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
+}

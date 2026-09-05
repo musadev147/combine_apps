@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "755292470761",
+    "firebase_url": "https://damadami-live-default-rtdb.firebaseio.com",
+    "project_id": "damadami-live",
+    "storage_bucket": "damadami-live.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755292470761:android:61812291f520cc5d5f9f78",
+        "android_client_info": {
+          "package_name": "com.softzenit.damadami_live_hub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYM-LCLZhTx1SzutcSBKiOIEa_V1l3nB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755292470761:android:9aafcadf6447aad15f9f78",
+        "android_client_info": {
+          "package_name": "softzenit.damadami.live"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYM-LCLZhTx1SzutcSBKiOIEa_V1l3nB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
