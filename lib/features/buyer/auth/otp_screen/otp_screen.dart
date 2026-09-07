@@ -129,7 +129,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
                   // Pin Code Input Fields
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
                     child: PinCodeTextField(
                       appContext: context,
                       length: 6,
@@ -141,22 +141,30 @@ class _OtpScreenState extends State<OtpScreen> {
                         shape: PinCodeFieldShape.box,
                         borderRadius: BorderRadius.circular(12.r),
                         fieldHeight: 52.h,
-                        fieldWidth: 42.w,
-                        activeFillColor: Colors.white.withOpacity(0.12),
-                        inactiveFillColor: Colors.white.withOpacity(0.06),
-                        selectedFillColor: Colors.white.withOpacity(0.18),
+                        fieldWidth: 44.w,
+                        activeFillColor: Get.isRegistered<ThemeController>() && Get.find<ThemeController>().isDarkMode.value
+                            ? Colors.white.withOpacity(0.12)
+                            : const Color(0xFFF1F5F9),
+                        inactiveFillColor: Get.isRegistered<ThemeController>() && Get.find<ThemeController>().isDarkMode.value
+                            ? Colors.white.withOpacity(0.06)
+                            : const Color(0xFFF8FAFC),
+                        selectedFillColor: Get.isRegistered<ThemeController>() && Get.find<ThemeController>().isDarkMode.value
+                            ? Colors.white.withOpacity(0.18)
+                            : const Color(0xFFE2E8F0),
                         activeColor: const Color(0xFF53A4CA),
-                        inactiveColor: Colors.white.withOpacity(0.2),
-                        selectedColor: Colors.white,
+                        inactiveColor: Get.isRegistered<ThemeController>() && Get.find<ThemeController>().isDarkMode.value
+                            ? Colors.white.withOpacity(0.2)
+                            : Colors.black12,
+                        selectedColor: const Color(0xFF7953CA),
                         borderWidth: 1.5,
                       ),
-                      cursorColor: Colors.white,
+                      cursorColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
                       animationDuration: const Duration(milliseconds: 300),
                       enableActiveFill: true,
                       textStyle: TextStyle(
                         fontSize: 18.sp,
                         color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                       ),
                       onChanged: (value) {},
                       validator: (value) {

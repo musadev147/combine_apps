@@ -34,9 +34,6 @@ void main() async {
   diSetup();
   initiInternetChecker();
 
-  Get.put(WebSocketService());
-  Get.put(AgoraService());
-  Get.put(ConnectionController());
   Get.put(ThemeController());
 
   configLoading();

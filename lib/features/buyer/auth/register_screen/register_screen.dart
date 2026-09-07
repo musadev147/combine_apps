@@ -77,20 +77,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       resolvedRole ??= 'buyer';
 
+      final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
+
       bool success = await postRegisterRx.signUpdata(
         name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text,
         password_confirmation: _confirmPasswordController.text,
         role: resolvedRole,
-        phoneNumber: _phoneController.text.trim(),
+        phoneNumber: phone,
         permanentAddress: _permanentAddressController.text.trim(),
         presentAddress: _presentAddressController.text.trim(),
         avatar: _avatarFile,
       );
 
       if (success) {
-        Get.toNamed(Routes.OTP, arguments: {'email': _emailController.text.trim(), 'fromRegister': true});
+        Get.toNamed(Routes.OTP, arguments: {'email': email, 'fromRegister': true});
       }
     }
   }
@@ -202,19 +205,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
 
-                  // Email
+                  // Email Address
                   GlassTextField(
                     controller: _emailController,
                     labelText: 'Email Address',
-                    hintText: 'Enter your email',
+                    hintText: 'Enter your email for OTP verification',
                     prefixIcon: Icon(Icons.email_outlined),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Email is required';
+                        return 'Email is required for OTP verification';
                       }
                       if (!GetUtils.isEmail(value.trim())) {
-                        return 'Enter a valid email';
+                        return 'Enter a valid email address';
                       }
                       return null;
                     },

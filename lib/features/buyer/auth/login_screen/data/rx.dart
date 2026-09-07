@@ -11,6 +11,8 @@ import 'package:bd_shope_combined/networks/exception_handler/data_source.dart';
 import 'package:bd_shope_combined/common_wigdets/app_toast.dart';
 import 'package:bd_shope_combined/route/app_pages.dart';
 import 'package:bd_shope_combined/features/buyer/auth/login_screen/model/login_model.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
 import 'package:bd_shope_combined/services/web_socket_service.dart';
 import 'api.dart';
 import 'package:bd_shope_combined/features/buyer/auth/register_screen/data/role_api.dart';
@@ -60,7 +62,7 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
     }
 
     if (roleName != 'customer' && roleName != 'buyer') {
-      AppToast.error("This account is not registered as a Customer. Please use the correct app.");
+      AppToast.error("Role mismatch: Account is '$roleName', not Customer. Please use the correct app.");
       return false;
     }
 
@@ -77,6 +79,7 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
     final permanentAddress = data.user?.permanentAddress ?? "";
 
     await appData.write(kKeyIsLoggedIn, true);
+    await appData.write('userRole', roleName);
     await appData.write(kKeyEmail, email);
     await appData.write(kKeyAccessToken, accessToken);
     if (refreshToken.isNotEmpty) {
@@ -98,6 +101,15 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
       log("PostLoginRx: Failed to register FCM token: $e");
     }
 
+    if (!Get.isRegistered<WebSocketService>()) {
+      Get.put(WebSocketService(), permanent: true);
+    }
+    if (!Get.isRegistered<AgoraService>()) {
+      Get.put(AgoraService(), permanent: true);
+    }
+    if (!Get.isRegistered<ConnectionController>()) {
+      Get.put(ConnectionController(), permanent: true);
+    }
     Get.find<WebSocketService>().connect();
 
     return true;

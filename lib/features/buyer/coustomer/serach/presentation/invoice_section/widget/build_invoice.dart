@@ -1,4 +1,5 @@
 import 'package:bd_shope_combined/controllers/theme_controller.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -134,6 +135,14 @@ class BuildInvoicesList extends StatelessWidget {
   }
 
   void _showOwnerPayoutMethodsBottomSheet(BuildContext context, String invoiceId, GetNotifiInvoiceModel invoice) {
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final sheetBg = isDark ? const Color(0xFF191B28) : (theme?.cardBackground ?? Colors.white);
+    final textColor = isDark ? Colors.white : (theme?.textColor ?? Colors.black87);
+    final textSecColor = isDark ? const Color(0xFF94A3B8) : (theme?.textSecondaryColor ?? Colors.black54);
+    final cardBg = isDark ? const Color(0xFF232738) : const Color(0xFFF8F9FA);
+    final borderColor = isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
+
     Get.bottomSheet(
       Container(
         padding: EdgeInsets.only(
@@ -143,9 +152,9 @@ class BuildInvoicesList extends StatelessWidget {
           bottom: 24.h,
         ),
         decoration: BoxDecoration(
-          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : const Color(0xFF1E1E38),
+          color: sheetBg,
           borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
-          border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+          border: Border.all(color: borderColor),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -156,7 +165,7 @@ class BuildInvoicesList extends StatelessWidget {
                 width: 50.w,
                 height: 5.h,
                 decoration: BoxDecoration(
-                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.3),
+                  color: isDark ? Colors.white.withOpacity(0.3) : Colors.black26,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
@@ -165,7 +174,7 @@ class BuildInvoicesList extends StatelessWidget {
             Text(
               'Owner Payout Methods',
               style: GoogleFonts.outfit(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                color: textColor,
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -174,7 +183,7 @@ class BuildInvoicesList extends StatelessWidget {
             Text(
               'Please send the payment to one of the accounts below, then proceed to submit your payment details.',
               style: GoogleFonts.poppins(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                color: textSecColor,
                 fontSize: 12.sp,
               ),
             ),
@@ -204,7 +213,7 @@ class BuildInvoicesList extends StatelessWidget {
                     return Center(
                       child: Text(
                         'No payout methods found for this owner.',
-                        style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 13.sp),
+                        style: GoogleFonts.poppins(color: textSecColor, fontSize: 13.sp),
                       ),
                     );
                   }
@@ -237,9 +246,9 @@ class BuildInvoicesList extends StatelessWidget {
                               margin: EdgeInsets.only(bottom: 12.h),
                               padding: EdgeInsets.all(14.r),
                               decoration: BoxDecoration(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+                                color: cardBg,
                                 borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+                                border: Border.all(color: borderColor),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,7 +260,7 @@ class BuildInvoicesList extends StatelessWidget {
                                       Text(
                                         'Bank Account Details',
                                         style: GoogleFonts.outfit(
-                                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                          color: textColor,
                                           fontSize: 14.sp,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -294,7 +303,7 @@ class BuildInvoicesList extends StatelessWidget {
                 child: Text(
                   'Proceed to Payment',
                   style: GoogleFonts.outfit(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                    color: Colors.white,
                     fontSize: 15.sp,
                     fontWeight: FontWeight.bold,
                   ),
@@ -315,13 +324,20 @@ class BuildInvoicesList extends StatelessWidget {
     required IconData icon,
     required Color color,
   }) {
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final textColor = isDark ? Colors.white : (theme?.textColor ?? Colors.black87);
+    final textSecColor = isDark ? const Color(0xFF94A3B8) : (theme?.textSecondaryColor ?? Colors.black54);
+    final cardBg = isDark ? const Color(0xFF232738) : const Color(0xFFF8F9FA);
+    final borderColor = isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08);
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+        color: cardBg,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: [
@@ -340,18 +356,18 @@ class BuildInvoicesList extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 11.sp, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(color: textSecColor, fontSize: 11.sp, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   value,
-                  style: GoogleFonts.outfit(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontSize: 15.sp, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(color: textColor, fontSize: 15.sp, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: Icon(Icons.copy, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 18.r),
+            icon: Icon(Icons.copy, color: textSecColor, size: 18.r),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               Get.snackbar(
@@ -370,6 +386,11 @@ class BuildInvoicesList extends StatelessWidget {
   }
 
   Widget _buildBankDetailRow(String label, String val, {bool canCopy = false}) {
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final textColor = theme?.textColor ?? (isDark ? Colors.white : Colors.black87);
+    final textSecColor = theme?.textSecondaryColor ?? (isDark ? Colors.white70 : Colors.black54);
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),
       child: Row(
@@ -379,13 +400,13 @@ class BuildInvoicesList extends StatelessWidget {
             width: 100.w,
             child: Text(
               label,
-              style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.5), fontSize: 11.sp),
+              style: GoogleFonts.poppins(color: textSecColor, fontSize: 11.sp),
             ),
           ),
           Expanded(
             child: Text(
               val,
-              style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8), fontSize: 12.sp, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(color: textColor, fontSize: 12.sp, fontWeight: FontWeight.w500),
             ),
           ),
           if (canCopy)
@@ -403,7 +424,7 @@ class BuildInvoicesList extends StatelessWidget {
               },
               child: Padding(
                 padding: EdgeInsets.only(left: 8.w),
-                child: Icon(Icons.copy, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 14.r),
+                child: Icon(Icons.copy, color: textSecColor, size: 14.r),
               ),
             ),
         ],
@@ -418,6 +439,13 @@ class BuildInvoicesList extends StatelessWidget {
     final addressController = TextEditingController(text: invoice.address ?? '');
     String selectedMethod = 'bkash';
     bool isSubmitting = false;
+
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final sheetBg = theme?.cardBackground ?? (isDark ? const Color(0xFF1E1E38) : Colors.white);
+    final textColor = theme?.textColor ?? (isDark ? Colors.white : Colors.black87);
+    final textSecColor = theme?.textSecondaryColor ?? (isDark ? Colors.white70 : Colors.black54);
+    final borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
 
     showModalBottomSheet(
       context: context,
@@ -437,9 +465,9 @@ class BuildInvoicesList extends StatelessWidget {
                 bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
               ),
               decoration: BoxDecoration(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : const Color(0xFF1E1E38),
+                color: sheetBg,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
-                border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+                border: Border.all(color: borderColor),
               ),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -452,7 +480,7 @@ class BuildInvoicesList extends StatelessWidget {
                       width: 50.w,
                       height: 5.h,
                       decoration: BoxDecoration(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.3),
+                        color: isDark ? Colors.white.withOpacity(0.3) : Colors.black26,
                         borderRadius: BorderRadius.circular(10.r),
                       ),
                     ),
@@ -461,7 +489,7 @@ class BuildInvoicesList extends StatelessWidget {
                   Text(
                     'Complete Payment',
                     style: GoogleFonts.outfit(
-                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                      color: textColor,
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                     ),
@@ -471,7 +499,7 @@ class BuildInvoicesList extends StatelessWidget {
                   // Method Selection
                   Text(
                     'Payment Method',
-                    style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 12.sp, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(color: textSecColor, fontSize: 12.sp, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8.h),
                   Row(
@@ -487,17 +515,17 @@ class BuildInvoicesList extends StatelessWidget {
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.05),
+                            color: isSelected ? const Color(0xFF7953CA) : (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFF4F5F7)),
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.1),
+                              color: isSelected ? const Color(0xFF7953CA) : borderColor,
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
                           child: Text(
                             method.toUpperCase(),
                             style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                              color: isSelected ? Colors.white : textSecColor,
                               fontSize: 11.sp,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
@@ -614,9 +642,16 @@ class BuildInvoicesList extends StatelessWidget {
                                   );
                                 }
                               } catch (e) {
+                                String errorMsg = 'An error occurred: $e';
+                                if (e is DioException && e.response?.data != null) {
+                                  final resData = e.response!.data;
+                                  if (resData is Map && resData.containsKey('error')) {
+                                    errorMsg = resData['error'].toString();
+                                  }
+                                }
                                 Get.snackbar(
                                   'Error',
-                                  'An error occurred: $e',
+                                  errorMsg,
                                   backgroundColor: Colors.redAccent.withOpacity(0.9),
                                   colorText: Colors.white,
                                 );
@@ -630,7 +665,7 @@ class BuildInvoicesList extends StatelessWidget {
                           ? SizedBox(
                               width: 20.r,
                               height: 20.r,
-                              child: CircularProgressIndicator(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white, strokeWidth: 2),
+                              child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : Text(
                               'Confirm Payment',
@@ -659,13 +694,20 @@ class BuildInvoicesList extends StatelessWidget {
     required IconData icon,
     bool readOnly = false,
   }) {
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final textColor = theme?.textColor ?? (isDark ? Colors.white : Colors.black87);
+    final textSecColor = theme?.textSecondaryColor ?? (isDark ? Colors.white70 : Colors.black54);
+    final inputBg = isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF8F9FA);
+    final borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.08);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: GoogleFonts.poppins(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+            color: textSecColor,
             fontSize: 11.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -673,22 +715,22 @@ class BuildInvoicesList extends StatelessWidget {
         SizedBox(height: 4.h),
         Container(
           decoration: BoxDecoration(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+            color: inputBg,
             borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+            border: Border.all(color: borderColor),
           ),
           child: TextFormField(
             controller: controller,
             readOnly: readOnly,
             style: GoogleFonts.poppins(
-              color: readOnly ? Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54 : Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+              color: readOnly ? textSecColor : textColor,
               fontSize: 13.sp,
             ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 18.sp),
+              prefixIcon: Icon(icon, color: const Color(0xFF7953CA), size: 18.sp),
               hintText: hint,
               hintStyle: GoogleFonts.poppins(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.3),
+                color: isDark ? Colors.white38 : Colors.black38,
                 fontSize: 13.sp,
               ),
               border: InputBorder.none,

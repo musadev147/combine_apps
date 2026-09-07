@@ -24,7 +24,7 @@ class RoleSelectionScreen extends StatelessWidget {
               children: [
                 SizedBox(height: 40.h),
                 Text(
-                  "Welcome to Damadami",
+                  "Welcome to Damadami Live",
                   textAlign: TextAlign.center,
                   style: GoogleFonts.outfit(
                     fontSize: 32.sp,

@@ -74,9 +74,20 @@ class Results {
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     category = json['category'];
-    adminTag = json['admin_tag']?.toString();
+    
+    if (json['admin_tag'] is Map) {
+      adminTag = json['admin_tag']['id']?.toString();
+    } else {
+      adminTag = json['admin_tag']?.toString();
+    }
+    
     region = json['region']?.toString();
-    vendor = json['vendor']?.toString();
+    
+    if (json['vendor'] is Map) {
+      vendor = json['vendor']['id']?.toString();
+    } else {
+      vendor = json['vendor']?.toString();
+    }
   }
 
   Map<String, dynamic> toJson() {

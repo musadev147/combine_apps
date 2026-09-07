@@ -513,7 +513,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                                   child: Text(
                                     slide.subtitle!.toUpperCase(),
                                     style: GoogleFonts.poppins(
-                                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                      color: Colors.white,
                                       fontSize: 9.sp,
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 0.5,
@@ -525,7 +525,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                               Text(
                                 slide.title ?? '',
                                 style: GoogleFonts.outfit(
-                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                  color: Colors.white,
                                   fontSize: 20.sp,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -535,7 +535,7 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                                 Text(
                                   slide.descriptions!,
                                   style: GoogleFonts.poppins(
-                                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7),
+                                    color: Colors.white.withOpacity(0.85),
                                     fontSize: 11.sp,
                                   ),
                                   maxLines: 1,
@@ -600,20 +600,76 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'Damadami Live',
-                    style: GoogleFonts.outfit(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 26.sp,
-                      letterSpacing: -0.5,
-                    ),
+                  Row(
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF7953CA), Color(0xFF53A4CA)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds),
+                        child: Text(
+                          'Damadami',
+                          style: GoogleFonts.outfit(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 28.sp,
+                            letterSpacing: -0.6,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 6.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFF4B4B), Color(0xFFFF8533)],
+                          ),
+                          borderRadius: BorderRadius.circular(20.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFF4B4B).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6.r,
+                              height: 6.r,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'LIVE',
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11.sp,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 2.h),
                   Text(
                     'Search a tag → Talk to sellers instantly',
                     style: GoogleFonts.poppins(
-                      color: Colors.black54,
-                      fontSize: 11.sp,
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().textSecondaryColor
+                          : Colors.black54,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
                     ),
                   ),
                 ],

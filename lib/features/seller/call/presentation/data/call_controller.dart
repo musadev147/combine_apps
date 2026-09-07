@@ -9,20 +9,20 @@ import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/constants/app_constants.dart';
 import 'package:bd_shope_combined/networks/api_acess.dart';
 import 'package:bd_shope_combined/features/seller/home/presentation/data/short_note_api.dart';
+import '../../../../../route/app_routes.dart';
 import 'call_websocket_service.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/incoming_call_screen.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/call_screen.dart';
-import 'agora_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/floating_call_bubble.dart';
 import 'notification_service.dart';
-
 
 enum CallState { idle, incoming, accepted, rejected, connected, ended }
 
 class CallController extends GetxController {
   final _wsService = CallWebSocketService();
   bool _ignoreCallKitEvents = false;
-  
+
   // Observable Call details
   var callState = CallState.idle.obs;
   var currentCallId = ''.obs;
@@ -47,6 +47,18 @@ class CallController extends GetxController {
     // Watch calling state changes to show/hide overlay bubble automatically
     everAll([callState, isCallScreenVisible], (_) {
       _updateFloatingBubbleState();
+    });
+
+    // Watch Agora remote UID to auto-end call if buyer skips/drops
+    ever(Get.find<AgoraService>().remoteUid, (uid) {
+      if (uid == null && callState.value == CallState.connected) {
+        log(
+          'CallController: Remote user dropped (buyer skipped). Ending call.',
+        );
+        _stopRingtone();
+        callState.value = CallState.ended;
+        _cleanupAndGoBack();
+      }
     });
   }
 
@@ -80,7 +92,15 @@ class CallController extends GetxController {
           break;
         case Event.actionCallEnded:
           log('CallController: CallKit Ended Event triggered.');
-          endCall();
+          // Only end the call if we were incoming or it's a true hangup from CallKit
+          // If we just accepted from the app, endAllCalls() will trigger this, so we ignore it.
+          if (callState.value == CallState.incoming) {
+            endCall();
+          } else {
+            log(
+              'CallController: Ignoring CallKit Ended Event because call is already in state: ${callState.value}',
+            );
+          }
           break;
         case Event.actionCallTimeout:
           log('CallController: CallKit Timeout Event triggered.');
@@ -93,7 +113,11 @@ class CallController extends GetxController {
   }
 
   Future<void> _showIncomingCallKit(
-      String callId, String customerId, String product, String customerImage) async {
+    String callId,
+    String customerId,
+    String product,
+    String customerImage,
+  ) async {
     final params = CallKitParams(
       id: callId,
       nameCaller: customerId,
@@ -141,11 +165,16 @@ class CallController extends GetxController {
     if (token.isNotEmpty) {
       connectSocket(token);
     } else {
-      log("CallController: User not logged in yet. WebSocket connection deferred.");
+      log(
+        "CallController: User not logged in yet. WebSocket connection deferred.",
+      );
     }
   }
 
   void connectSocket(String token) {
+    _wsService.onMessageReceived = (message) {
+      _handleIncomingMessage(message);
+    };
     _wsService.connect(token);
   }
 
@@ -179,17 +208,31 @@ class CallController extends GetxController {
 
     switch (type) {
       case 'incoming_call':
-        final callId = message['session_id']?.toString() ?? message['call_id']?.toString() ?? '';
-        final customerId = message['buyer_name']?.toString() ?? message['customer_id']?.toString() ?? '';
-        final product = message['tag_name']?.toString() ?? message['product']?.toString() ?? '';
-        final customerImage = message['buyer_image']?.toString() ?? message['customer_image']?.toString() ?? '';
+        final callId =
+            message['session_id']?.toString() ??
+            message['call_id']?.toString() ??
+            '';
+        final customerId =
+            message['buyer_name']?.toString() ??
+            message['customer_id']?.toString() ??
+            '';
+        final product =
+            message['tag_name']?.toString() ??
+            message['product']?.toString() ??
+            '';
+        final customerImage =
+            message['buyer_image']?.toString() ??
+            message['customer_image']?.toString() ??
+            '';
 
         if (product.startsWith('[SHORT_NOTE]')) {
-           final title = "New Short Note Received";
-           final body = product.replaceAll('[SHORT_NOTE]', '').trim();
-           NotificationService.instance.showLocalNotification(title, body);
-           try { getNotificationsRx.fetchNotifications(); } catch (_) {}
-           return; // Stop processing as a call
+          final title = "New Short Note Received";
+          final body = product.replaceAll('[SHORT_NOTE]', '').trim();
+          NotificationService.instance.showLocalNotification(title, body);
+          try {
+            getNotificationsRx.fetchNotifications();
+          } catch (_) {}
+          return; // Stop processing as a call
         }
 
         if (callState.value == CallState.idle) {
@@ -205,16 +248,28 @@ class CallController extends GetxController {
           _showIncomingCallKit(callId, customerId, product, customerImage);
 
           // Open the incoming call screen overlay/page inside the app
-          Get.to(() => const IncomingCallScreen(), routeName: 'IncomingCallScreen');
+          Get.to(
+            () => const IncomingCallScreen(),
+            routeName: 'IncomingCallScreen',
+          );
         }
         break;
 
       case 'accept_call':
-        final callId = message['session_id']?.toString() ?? message['call_id']?.toString() ?? '';
-        final acceptedBy = message['seller_id']?.toString() ?? '';
+        final callId =
+            message['session_id']?.toString() ??
+            message['call_id']?.toString() ??
+            '';
+        final acceptedBy =
+            message['seller_id']?.toString() ??
+            message['vendor_id']?.toString() ??
+            message['vendor']?.toString() ??
+            '';
         final currentSellerId = appData.read(kKeyUserID)?.toString() ?? '';
 
-        if (callId == currentCallId.value || currentCallId.value.isEmpty || callId.isEmpty) {
+        if (callId == currentCallId.value ||
+            currentCallId.value.isEmpty ||
+            callId.isEmpty) {
           _stopRingtone();
           if (acceptedBy == currentSellerId && currentSellerId.isNotEmpty) {
             // We successfully accepted the call first
@@ -234,11 +289,16 @@ class CallController extends GetxController {
         final token = message['token'] as String?;
         final channelName = message['channel_name'] as String?;
         final uid = message['uid'] as int? ?? 0;
-        final acceptedBy = message['seller_id']?.toString() ?? message['vendor_id']?.toString() ?? '';
+        final acceptedBy =
+            message['seller_id']?.toString() ??
+            message['vendor_id']?.toString() ??
+            message['vendor']?.toString() ??
+            '';
         final currentSellerId = appData.read(kKeyUserID)?.toString() ?? '';
-        
+
         _stopRingtone();
-        if (callState.value == CallState.accepted || callState.value == CallState.incoming) {
+        if (callState.value == CallState.accepted ||
+            callState.value == CallState.incoming) {
           if (acceptedBy.isNotEmpty && acceptedBy != currentSellerId) {
             // Someone else accepted the call, so we should decline/cleanup
             callState.value = CallState.ended;
@@ -249,7 +309,7 @@ class CallController extends GetxController {
             _navigateToCallScreen();
 
             if (channelName != null && channelName.isNotEmpty) {
-              AgoraService.instance.joinChannel(
+              AgoraService.to.joinCallChannel(
                 channelId: channelName,
                 token: token,
                 uid: uid,
@@ -260,8 +320,13 @@ class CallController extends GetxController {
         break;
 
       case 'call_declined':
-        final callId = message['session_id']?.toString() ?? message['call_id']?.toString() ?? '';
-        if (callId == currentCallId.value || currentCallId.value.isEmpty || callId.isEmpty) {
+        final callId =
+            message['session_id']?.toString() ??
+            message['call_id']?.toString() ??
+            '';
+        if (callId == currentCallId.value ||
+            currentCallId.value.isEmpty ||
+            callId.isEmpty) {
           _stopRingtone();
           callState.value = CallState.rejected;
           _cleanupAndGoBack();
@@ -269,8 +334,13 @@ class CallController extends GetxController {
         break;
 
       case 'call_rejected_by_buyer':
-        final callId = message['session_id']?.toString() ?? message['call_id']?.toString() ?? '';
-        if (callId == currentCallId.value || currentCallId.value.isEmpty || callId.isEmpty) {
+        final callId =
+            message['session_id']?.toString() ??
+            message['call_id']?.toString() ??
+            '';
+        if (callId == currentCallId.value ||
+            currentCallId.value.isEmpty ||
+            callId.isEmpty) {
           _stopRingtone();
           callState.value = CallState.ended;
           _cleanupAndGoBack();
@@ -280,8 +350,13 @@ class CallController extends GetxController {
       case 'call_missed':
       case 'call_cancelled':
       case 'cancel_call':
-        final callId = message['session_id']?.toString() ?? message['call_id']?.toString() ?? '';
-        if (callId == currentCallId.value || currentCallId.value.isEmpty || callId.isEmpty) {
+        final callId =
+            message['session_id']?.toString() ??
+            message['call_id']?.toString() ??
+            '';
+        if (callId == currentCallId.value ||
+            currentCallId.value.isEmpty ||
+            callId.isEmpty) {
           _stopRingtone();
           callState.value = CallState.ended;
           _cleanupAndGoBack();
@@ -299,19 +374,28 @@ class CallController extends GetxController {
     _wsService.send(payload);
     callState.value = CallState.accepted;
 
-    if (!fromCallKit) {
-      // Dismiss CallKit incoming notification UI programmatically only if accepted from in-app
-      _ignoreCallKitEvents = true;
+    _ignoreCallKitEvents = true;
+
+    // Transition CallKit to connected state to reliably dismiss the stubborn ringing Heads-Up UI on some Android devices
+    FlutterCallkitIncoming.setCallConnected(currentCallId.value);
+
+    // Completely remove the CallKit UI after a tiny delay
+    Future.delayed(const Duration(milliseconds: 500), () {
+      FlutterCallkitIncoming.endCall(currentCallId.value);
       FlutterCallkitIncoming.endAllCalls();
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _ignoreCallKitEvents = false;
-      });
-    }
+    });
+
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      _ignoreCallKitEvents = false;
+    });
+
+    _navigateToCallScreen();
   }
 
   void _navigateToCallScreen() {
     final currentRoute = Get.currentRoute;
-    if (currentRoute == 'IncomingCallScreen' || currentRoute == '/IncomingCallScreen') {
+    if (currentRoute == 'IncomingCallScreen' ||
+        currentRoute == '/IncomingCallScreen') {
       Get.off(() => const CallScreen(), routeName: 'CallScreen');
     } else {
       if (currentRoute != 'CallScreen' && currentRoute != '/CallScreen') {
@@ -333,12 +417,10 @@ class CallController extends GetxController {
 
   void startCall(String tagId) {
     _stopRingtone();
-    final payload = {
-      'action': 'initiate_call',
-      'tag_id': tagId,
-    };
+    final payload = {'action': 'initiate_call', 'tag_id': tagId};
     _wsService.send(payload);
-    callState.value = CallState.accepted; // set state so call_started event is accepted
+    callState.value =
+        CallState.accepted; // set state so call_started event is accepted
   }
 
   void endCall() {
@@ -355,8 +437,8 @@ class CallController extends GetxController {
   void _cleanupAndGoBack() {
     _stopRingtone();
     stopCallTimer();
-    AgoraService.instance.leaveChannel();
-    
+    AgoraService.to.leaveCallChannel();
+
     // Clean up CallKit UI
     FlutterCallkitIncoming.endAllCalls();
 
@@ -367,9 +449,20 @@ class CallController extends GetxController {
     callState.value = CallState.idle;
 
     // Pop the incoming call screen or active call screen if currently on screen
-    if (isCallScreenVisible.value || Get.isDialogOpen == true) {
+    if (isCallScreenVisible.value ||
+        Get.currentRoute == 'CallScreen' ||
+        Get.currentRoute == '/CallScreen' ||
+        Get.currentRoute == 'IncomingCallScreen' ||
+        Get.currentRoute == '/IncomingCallScreen' ||
+        Get.isDialogOpen == true) {
       isCallScreenVisible.value = false;
-      Get.back();
+
+      final prevRoute = Get.previousRoute;
+      if (prevRoute.isEmpty || prevRoute == Routes.HOME || prevRoute == '/') {
+        Get.offAllNamed(Routes.SELLER_HOME);
+      } else {
+        Get.back();
+      }
     }
   }
 
@@ -386,19 +479,26 @@ class CallController extends GetxController {
       final seconds = (callTimerSeconds.value % 60).toString().padLeft(2, '0');
       callTimerString.value = '$minutes:$seconds';
     });
-    
+
     // Start polling for new short notes during call
     _lastShortNoteId = null;
-    ShortNoteApi.instance.fetchShortNotes().then((list) {
-      if (list.isNotEmpty) {
-        _lastShortNoteId = list.first.id;
-      } else {
-        _lastShortNoteId = "none";
-      }
-    }).catchError((_) { _lastShortNoteId = "none"; });
-    
+    ShortNoteApi.instance
+        .fetchShortNotes()
+        .then((list) {
+          if (list.isNotEmpty) {
+            _lastShortNoteId = list.first.id;
+          } else {
+            _lastShortNoteId = "none";
+          }
+        })
+        .catchError((_) {
+          _lastShortNoteId = "none";
+        });
+
     _shortNotePollTimer?.cancel();
-    _shortNotePollTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _shortNotePollTimer = Timer.periodic(const Duration(seconds: 5), (
+      timer,
+    ) async {
       if (_lastShortNoteId == null) return;
       try {
         final list = await ShortNoteApi.instance.fetchShortNotes();
@@ -422,7 +522,7 @@ class CallController extends GetxController {
     _callTimer = null;
     callTimerSeconds.value = 0;
     callTimerString.value = '00:00';
-    
+
     _shortNotePollTimer?.cancel();
     _shortNotePollTimer = null;
   }
@@ -449,8 +549,10 @@ class CallController extends GetxController {
   }
 
   void _initializeAgoraOrZego() {
-    log('Agora/Zego Integration: Preparing RTC audio engines for Channel ID: ${currentCallId.value}');
-    AgoraService.instance.joinChannel(channelId: currentCallId.value);
+    log(
+      'Agora/Zego Integration: Preparing RTC audio engines for Channel ID: ${currentCallId.value}',
+    );
+    AgoraService.to.joinCallChannel(channelId: currentCallId.value);
   }
 
   @override

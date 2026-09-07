@@ -81,27 +81,27 @@ class _GlassTextFieldState extends State<GlassTextField> {
         : Colors.black.withOpacity(0.05);
 
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.h),
+      margin: EdgeInsets.symmetric(vertical: 6.h),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(14.r),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(20.r),
+              borderRadius: BorderRadius.circular(14.r),
               border: Border.all(
                 color: _isFocused
                     ? AppColors.allPrimaryColor.withOpacity(0.8)
                     : borderColor,
-                width: 1.5,
+                width: 1.2,
               ),
               boxShadow: _isFocused
                   ? [
                       BoxShadow(
-                        color: AppColors.allPrimaryColor.withOpacity(0.15),
-                        blurRadius: 10,
-                        spreadRadius: 2,
+                        color: AppColors.allPrimaryColor.withOpacity(0.12),
+                        blurRadius: 8,
+                        spreadRadius: 1,
                       ),
                     ]
                   : [],
@@ -120,7 +120,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
               onTap: widget.onTap,
               style: TextStyle(
                 color: textColor,
-                fontSize: 15.sp,
+                fontSize: 14.sp,
                 fontWeight: FontWeight.w400,
               ),
               cursorColor: AppColors.allPrimaryColor,
@@ -128,16 +128,16 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 labelText: widget.labelText,
                 labelStyle: TextStyle(
                   color: labelColor,
-                  fontSize: 13.sp,
+                  fontSize: 12.sp,
                 ),
                 hintText: widget.hintText,
                 hintStyle: TextStyle(
                   color: hintColor,
-                  fontSize: 13.sp,
+                  fontSize: 12.sp,
                 ),
                 prefixIcon: widget.prefixIcon != null
                     ? IconTheme(
-                        data: IconThemeData(color: iconColor),
+                        data: IconThemeData(color: iconColor, size: 20.r),
                         child: widget.prefixIcon!,
                       )
                     : null,
@@ -148,6 +148,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
                               ? Icons.visibility
                               : Icons.visibility_off,
                           color: iconColor,
+                          size: 20.r,
                         ),
                         onPressed: () {
                           setState(() {
@@ -157,9 +158,10 @@ class _GlassTextFieldState extends State<GlassTextField> {
                       )
                     : widget.suffixIcon,
                 border: InputBorder.none,
+                isDense: true,
                 contentPadding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: widget.maxLines > 1 ? 16.h : 14.h,
+                  horizontal: 16.w,
+                  vertical: widget.maxLines > 1 ? 12.h : 10.h,
                 ),
               ),
             ),

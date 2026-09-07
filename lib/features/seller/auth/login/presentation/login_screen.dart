@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    bool success = await postLoginRx.loginFunc(
+    bool success = await sellerPostLoginRx.loginFunc(
       email: email,
       password: password,
     );
@@ -56,7 +56,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final tc = Get.find<ThemeController>();
-    return Obx(() => GlassBackgroundScaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Get.offAllNamed(Routes.ROLE_SELECTION);
+      },
+      child: Obx(() => GlassBackgroundScaffold(
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -193,6 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+      )
     ));
   }
 

@@ -240,32 +240,93 @@ class _DashboardTabState extends State<DashboardTab> {
           SizedBox(height: 16.h),
           GlassCard(
             borderRadius: 20.r,
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.r),
+                gradient: LinearGradient(
+                  colors: [AppColors.c053A4CA.withOpacity(0.15), AppColors.c7953CA.withOpacity(0.15)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Revenue Analytics", style: TextStyle(color: tc.textColor, fontSize: 15.sp, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 16.h),
-                  SizedBox(
-                    height: 160.h,
-                    child: LineChart(
-                      LineChartData(
-                        gridData: const FlGridData(show: false),
-                        titlesData: const FlTitlesData(show: false),
-                        borderData: FlBorderData(show: false),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: const [FlSpot(0, 2), FlSpot(1, 4), FlSpot(2, 3), FlSpot(3, 5), FlSpot(4, 4.5), FlSpot(5, 6)],
-                            isCurved: true,
-                            gradient: LinearGradient(colors: [AppColors.c053A4CA, AppColors.c7953CA]),
-                            barWidth: 4,
-                            belowBarData: BarAreaData(show: true, color: AppColors.c053A4CA.withOpacity(0.15)),
-                          )
-                        ],
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(12.w),
+                        decoration: BoxDecoration(
+                          color: AppColors.c053A4CA.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.rocket_launch_rounded, color: AppColors.c053A4CA, size: 28.sp),
+                      ),
+                      SizedBox(width: 16.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Boost Your Sales!",
+                              style: TextStyle(
+                                color: tc.textColor,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 6.h),
+                            Text(
+                              "Add more product tags and stay online to attract more buyer inquiries.",
+                              style: TextStyle(
+                                color: tc.textSecondaryColor,
+                                fontSize: 12.sp,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    width: double.infinity,
+                    height: 45.h,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.c053A4CA, AppColors.c5369CA],
+                      ),
+                      borderRadius: BorderRadius.circular(14.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.c053A4CA.withOpacity(0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.snackbar("Tip", "Keep your app open to receive calls instantly!", colorText: Colors.white, backgroundColor: AppColors.c053A4CA.withOpacity(0.8));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+                      ),
+                      child: Text(
+                        "View Selling Tips",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

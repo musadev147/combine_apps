@@ -168,7 +168,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           style: GoogleFonts.outfit(
                             fontSize: 38.sp,
                             fontWeight: FontWeight.w900,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                            color: Colors.white,
                             letterSpacing: 2.0,
                             shadows: [
                               Shadow(
@@ -186,7 +186,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           style: GoogleFonts.poppins(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w400,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.65),
+                            color: Colors.white.withOpacity(0.8),
                             letterSpacing: 1.0,
                           ),
                         ),

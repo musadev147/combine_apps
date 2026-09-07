@@ -17,6 +17,9 @@ import 'package:bd_shope_combined/features/buyer/coustomer/serach/presentation/i
 import 'package:bd_shope_combined/features/buyer/coustomer/serach/presentation/search_screen.dart';
 import 'package:bd_shope_combined/features/buyer/home/call_overlay.dart';
 import 'package:bd_shope_combined/networks/api_acess.dart';
+import 'package:bd_shope_combined/services/web_socket_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,6 +30,25 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _initBuyerServices();
+  }
+
+  void _initBuyerServices() {
+    if (!Get.isRegistered<WebSocketService>()) {
+      Get.put(WebSocketService(), permanent: true);
+    }
+    if (!Get.isRegistered<AgoraService>()) {
+      Get.put(AgoraService(), permanent: true);
+    }
+    if (!Get.isRegistered<ConnectionController>()) {
+      Get.put(ConnectionController(), permanent: true);
+    }
+    Get.find<WebSocketService>().connect();
+  }
 
   final List<Widget> _pages = const [
     BuyerHomeScreen(),
@@ -51,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(28),
                   color: const Color(0xFF1E1E38).withOpacity(0.95),
-                  border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.15)),
+                  border: Border.all(color: Colors.white24),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -68,17 +90,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       "Exit Application?",
                       style: GoogleFonts.outfit(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(height: 8),
                     Text(
-                      "Are you sure you want to close the app?",
+                      "Do you want to exit the application?",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7),
+                        color: Colors.white70,
                         fontSize: 13,
                       ),
                     ),
@@ -89,14 +111,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: OutlinedButton(
                             onPressed: () => Navigator.of(context).pop(false),
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.2)),
+                              side: BorderSide(color: Colors.white38),
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16)),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
                             child: Text(
                               "Cancel",
-                              style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7)),
+                              style: TextStyle(color: Colors.white),
                             ),
                           ),
                         ),

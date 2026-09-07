@@ -69,9 +69,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showImagePickerOptions() {
+    final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : false;
+    final theme = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>() : null;
+    final sheetBg = isDark ? const Color(0xFF191B28) : (theme?.cardBackground ?? Colors.white);
+    final textColor = isDark ? Colors.white : (theme?.textColor ?? Colors.black87);
+    final iconColor = isDark ? const Color(0xFF53A4CA) : (theme?.iconColor ?? const Color(0xFF53A4CA));
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E1E38),
+      backgroundColor: sheetBg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
@@ -80,22 +86,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              SizedBox(height: 12.h),
+              Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              SizedBox(height: 8.h),
               ListTile(
-                leading: Icon(Icons.camera_alt, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black),
-                title: Text('Take Photo', style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black)),
+                leading: Icon(Icons.camera_alt, color: iconColor),
+                title: Text('Take Photo', style: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.w600)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: Icon(Icons.photo_library, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black),
-                title: Text('Choose from Gallery', style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black)),
+                leading: Icon(Icons.photo_library, color: iconColor),
+                title: Text('Choose from Gallery', style: GoogleFonts.poppins(color: textColor, fontWeight: FontWeight.w600)),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
                 },
               ),
+              SizedBox(height: 12.h),
             ],
           ),
         );

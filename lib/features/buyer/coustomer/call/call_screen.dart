@@ -14,6 +14,8 @@ import 'package:bd_shope_combined/route/app_pages.dart';
 import 'package:bd_shope_combined/networks/dio/dio.dart';
 import 'package:bd_shope_combined/networks/endpoints.dart';
 import 'package:bd_shope_combined/services/web_socket_service.dart';
+import 'package:bd_shope_combined/helpers/di.dart';
+import 'package:bd_shope_combined/constants/app_constants.dart';
 
 class CallScreen extends StatefulWidget {
   const CallScreen({Key? key}) : super(key: key);
@@ -83,16 +85,22 @@ class _CallScreenState extends State<CallScreen> {
     final deliveryChargeVal = double.tryParse(deliveryText) ?? 0.0;
 
     final sessionId = controller.currentSessionId.value;
-    final channelName = Get.find<AgoraService>().currentChannelId ?? "call_room_xyz123";
+    final channelName =
+        Get.find<AgoraService>().currentChannelId ?? "call_room_xyz123";
+    final storedUserIdStr = appData.read(kKeyUserID)?.toString() ?? '';
+    final storedUserId = int.tryParse(storedUserIdStr);
+    final buyerId = storedUserId ?? (controller.activeBuyerId.value != 0 ? controller.activeBuyerId.value : 5);
     final uuid = _generateDynamicUUID();
 
     final payload = {
       "id": uuid,
-      "session": sessionId.isNotEmpty ? sessionId : "98765432-abcd-efgh-ijkl-1234567890ab",
+      "session": sessionId.isNotEmpty
+          ? sessionId
+          : "98765432-abcd-efgh-ijkl-1234567890ab",
       "channel_name": channelName,
-      "buyer": controller.activeBuyerId.value,        
-      "vendor": controller.activeVendorId.value,       
-      "tag": controller.activeTagId.value,         
+      "buyer": buyerId,
+      "vendor": controller.activeVendorId.value,
+      "tag": controller.activeTagId.value,
       "product_name": name,
       "price": priceVal.toStringAsFixed(2),
       "quantity": qty,
@@ -111,7 +119,8 @@ class _CallScreenState extends State<CallScreen> {
         try {
           await postHttp(Endpoints.notifications(), {
             "title": "New Short Note Received",
-            "body": "Invoice for '$name' (Qty: $qty, Price: ৳${priceVal.toStringAsFixed(2)}) received.",
+            "body":
+                "Invoice for '$name' (Qty: $qty, Price: ৳${priceVal.toStringAsFixed(2)}) received.",
             "type": "short_notes",
             "vendor": controller.activeVendorId.value,
             "vendor_id": controller.activeVendorId.value,
@@ -122,13 +131,14 @@ class _CallScreenState extends State<CallScreen> {
         } catch (e) {
           debugPrint("Failed to trigger notification: $e");
         }
-        
+
         // Also send real-time WebSocket notification directly to seller if they are connected
         try {
           final wsService = Get.find<WebSocketService>();
           if (wsService.isConnected) {
             final vendorIdStr = controller.activeVendorId.value.toString();
-            final invoiceBody = "Invoice for '$name' (Qty: $qty, Price: ৳${priceVal.toStringAsFixed(2)}) received.";
+            final invoiceBody =
+                "Invoice for '$name' (Qty: $qty, Price: ৳${priceVal.toStringAsFixed(2)}) received.";
             // Send a fake call_request with the [SHORT_NOTE] prefix so the backend routes it!
             wsService.sendCallRequest(
               product: '[SHORT_NOTE] $invoiceBody',
@@ -231,7 +241,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   controller.callingTagOrProduct.value,
                   style: GoogleFonts.outfit(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                    color: Colors.white,
                     fontSize: 28.sp,
                     fontWeight: FontWeight.w900,
                   ),
@@ -240,7 +250,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   'Pinging ${controller.matchingSellersCount.value} online specialists...',
                   style: GoogleFonts.poppins(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6),
+                    color: Colors.white.withOpacity(0.6),
                     fontSize: 13.sp,
                   ),
                 ),
@@ -258,9 +268,13 @@ class _CallScreenState extends State<CallScreen> {
                   height: 180.r * value,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF7953CA).withOpacity(0.15 * (2 - value)),
+                    color: const Color(
+                      0xFF7953CA,
+                    ).withOpacity(0.15 * (2 - value)),
                     border: Border.all(
-                      color: const Color(0xFF7953CA).withOpacity(0.3 * (2 - value)),
+                      color: const Color(
+                        0xFF7953CA,
+                      ).withOpacity(0.3 * (2 - value)),
                       width: 2.r,
                     ),
                   ),
@@ -278,7 +292,7 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                       child: Icon(
                         Icons.settings_input_antenna,
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        color: Colors.white,
                         size: 40,
                       ),
                     ),
@@ -294,7 +308,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   'Waiting for sellers to accept...',
                   style: GoogleFonts.poppins(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.4),
+                    color: Colors.white.withOpacity(0.4),
                     fontSize: 12.sp,
                   ),
                 ),
@@ -314,11 +328,7 @@ class _CallScreenState extends State<CallScreen> {
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.call_end,
-                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
-                      size: 28,
-                    ),
+                    child: Icon(Icons.call_end, color: Colors.white, size: 28),
                   ),
                 ),
               ],
@@ -340,7 +350,9 @@ class _CallScreenState extends State<CallScreen> {
 
       if (!agoraService.isInitialized.value) {
         return Container(
-          color: const Color(0xFF141424),
+          color: Get.isRegistered<ThemeController>()
+              ? Get.find<ThemeController>().scaffoldBackgroundColor
+              : const Color(0xFF141424),
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -352,7 +364,9 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   'Initializing call engine...',
                   style: GoogleFonts.poppins(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                    color: Get.isRegistered<ThemeController>()
+                        ? Get.find<ThemeController>().textSecondaryColor
+                        : Colors.black54,
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
                   ),
@@ -375,23 +389,32 @@ class _CallScreenState extends State<CallScreen> {
                     controller: VideoViewController.remote(
                       rtcEngine: agoraService.engine!,
                       canvas: VideoCanvas(uid: agoraService.remoteUid.value),
-                      connection: RtcConnection(channelId: agoraService.currentChannelId),
+                      connection: RtcConnection(
+                        channelId: agoraService.currentChannelId,
+                      ),
                     ),
                   )
                 : Container(
-                    color: const Color(0xFF0F0F1A),
+                    color: Get.isRegistered<ThemeController>()
+                        ? Get.find<ThemeController>().scaffoldBackgroundColor
+                        : const Color(0xFF0F0F1A),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF53A4CA)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF53A4CA),
+                            ),
                           ),
                           SizedBox(height: 16.h),
                           Text(
                             'Waiting for video stream...',
                             style: GoogleFonts.poppins(
-                              color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                              color: Get.isRegistered<ThemeController>()
+                                  ? Get.find<ThemeController>()
+                                        .textSecondaryColor
+                                  : Colors.black54,
                               fontSize: 13.sp,
                             ),
                           ),
@@ -412,7 +435,11 @@ class _CallScreenState extends State<CallScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.keyboard_arrow_down, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, size: 30),
+                          icon: Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                            size: 30,
+                          ),
                           onPressed: () => Get.back(),
                         ),
                         Column(
@@ -421,22 +448,31 @@ class _CallScreenState extends State<CallScreen> {
                             Text(
                               seller?.name ?? 'Seller',
                               style: GoogleFonts.poppins(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                color: Colors.white,
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
-                                shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
+                                shadows: const [
+                                  Shadow(blurRadius: 10, color: Colors.black87),
+                                ],
                               ),
                             ),
                             SizedBox(height: 2.h),
-                            Obx(() => Text(
-                              controller.callTimerString.value,
-                              style: GoogleFonts.poppins(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8),
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.normal,
-                                shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
+                            Obx(
+                              () => Text(
+                                controller.callTimerString.value,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.normal,
+                                  shadows: const [
+                                    Shadow(
+                                      blurRadius: 10,
+                                      color: Colors.black87,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            )),
+                            ),
                           ],
                         ),
                         SizedBox(width: 48.w),
@@ -486,16 +522,23 @@ class _CallScreenState extends State<CallScreen> {
                         },
                         borderRadius: BorderRadius.circular(24.r),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 10.h,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.post_add_rounded, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, size: 20),
+                              Icon(
+                                Icons.post_add_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               SizedBox(width: 8.w),
                               Text(
                                 "Create Invoice",
                                 style: GoogleFonts.poppins(
-                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                  color: Colors.white,
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -510,7 +553,9 @@ class _CallScreenState extends State<CallScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildMessengerIconButton(
-                        icon: controller.isCameraOff.value ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                        icon: controller.isCameraOff.value
+                            ? Icons.videocam_off_rounded
+                            : Icons.videocam_rounded,
                         isActive: !controller.isCameraOff.value,
                         onTap: () => controller.toggleCamera(),
                       ),
@@ -521,12 +566,16 @@ class _CallScreenState extends State<CallScreen> {
                           onTap: () => controller.switchCamera(),
                         ),
                       _buildMessengerIconButton(
-                        icon: controller.isMuted.value ? Icons.mic_off_rounded : Icons.mic_rounded,
+                        icon: controller.isMuted.value
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
                         isActive: !controller.isMuted.value,
                         onTap: () => controller.toggleMute(),
                       ),
                       _buildMessengerIconButton(
-                        icon: controller.isSpeakerOn.value ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+                        icon: controller.isSpeakerOn.value
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_down_rounded,
                         isActive: controller.isSpeakerOn.value,
                         onTap: () => controller.toggleSpeaker(),
                       ),
@@ -544,12 +593,12 @@ class _CallScreenState extends State<CallScreen> {
                                   color: Colors.black26,
                                   blurRadius: 8,
                                   offset: Offset(0, 3),
-                                )
+                                ),
                               ],
                             ),
                             child: Icon(
                               Icons.skip_next_rounded,
-                              color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                              color: Colors.white,
                               size: 24,
                             ),
                           ),
@@ -567,12 +616,12 @@ class _CallScreenState extends State<CallScreen> {
                                 color: Colors.black26,
                                 blurRadius: 10,
                                 offset: Offset(0, 4),
-                              )
+                              ),
                             ],
                           ),
                           child: Icon(
                             Icons.call_end_rounded,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                            color: Colors.white,
                             size: 28,
                           ),
                         ),
@@ -589,9 +638,14 @@ class _CallScreenState extends State<CallScreen> {
     });
   }
 
-  Widget _buildAudioConnectedUI(ConnectionController controller, SellerModel? seller) {
+  Widget _buildAudioConnectedUI(
+    ConnectionController controller,
+    SellerModel? seller,
+  ) {
     return Container(
-      color: const Color(0xFF141424),
+      color: Get.isRegistered<ThemeController>()
+          ? Get.find<ThemeController>().scaffoldBackgroundColor
+          : const Color(0xFF141424),
       child: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -602,7 +656,13 @@ class _CallScreenState extends State<CallScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.keyboard_arrow_down, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 30),
+                    icon: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().textSecondaryColor
+                          : Colors.black54,
+                      size: 30,
+                    ),
                     onPressed: () => Get.back(),
                   ),
                 ],
@@ -617,36 +677,42 @@ class _CallScreenState extends State<CallScreen> {
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+                        color: Get.isRegistered<ThemeController>()
+                            ? Get.find<ThemeController>().cardBackground
+                            : Colors.white.withOpacity(0.05),
                         blurRadius: 30,
                         spreadRadius: 10,
-                      )
+                      ),
                     ],
                   ),
                   child: CircleAvatar(
                     radius: 60.r,
                     backgroundImage: NetworkImage(seller?.photo ?? ''),
-                    backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12,
+                    backgroundColor: Get.isRegistered<ThemeController>()
+                        ? Get.find<ThemeController>().dividerColor
+                        : Colors.black12,
                   ),
                 ),
                 SizedBox(height: 24.h),
                 Text(
                   seller?.name ?? 'Seller',
                   style: GoogleFonts.poppins(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                    color: Colors.white,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => Text(
-                  controller.callTimerString.value,
-                  style: GoogleFonts.poppins(
-                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6),
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.normal,
+                Obx(
+                  () => Text(
+                    controller.callTimerString.value,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                )),
+                ),
               ],
             ),
             Padding(
@@ -666,16 +732,23 @@ class _CallScreenState extends State<CallScreen> {
                         },
                         borderRadius: BorderRadius.circular(24.r),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 10.h,
+                          ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.post_add_rounded, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, size: 20),
+                              Icon(
+                                Icons.post_add_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                               SizedBox(width: 8.w),
                               Text(
                                 "Create Invoice",
                                 style: GoogleFonts.poppins(
-                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                  color: Colors.white,
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -690,17 +763,23 @@ class _CallScreenState extends State<CallScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildMessengerIconButton(
-                        icon: controller.isCameraOff.value ? Icons.videocam_off_rounded : Icons.videocam_rounded,
+                        icon: controller.isCameraOff.value
+                            ? Icons.videocam_off_rounded
+                            : Icons.videocam_rounded,
                         isActive: !controller.isCameraOff.value,
                         onTap: () => controller.toggleCamera(),
                       ),
                       _buildMessengerIconButton(
-                        icon: controller.isMuted.value ? Icons.mic_off_rounded : Icons.mic_rounded,
+                        icon: controller.isMuted.value
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
                         isActive: !controller.isMuted.value,
                         onTap: () => controller.toggleMute(),
                       ),
                       _buildMessengerIconButton(
-                        icon: controller.isSpeakerOn.value ? Icons.volume_up_rounded : Icons.volume_down_rounded,
+                        icon: controller.isSpeakerOn.value
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_down_rounded,
                         isActive: controller.isSpeakerOn.value,
                         onTap: () => controller.toggleSpeaker(),
                       ),
@@ -718,12 +797,12 @@ class _CallScreenState extends State<CallScreen> {
                                   color: Colors.black26,
                                   blurRadius: 8,
                                   offset: Offset(0, 3),
-                                )
+                                ),
                               ],
                             ),
                             child: Icon(
                               Icons.skip_next_rounded,
-                              color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                              color: Colors.white,
                               size: 24,
                             ),
                           ),
@@ -741,12 +820,12 @@ class _CallScreenState extends State<CallScreen> {
                                 color: Colors.black26,
                                 blurRadius: 10,
                                 offset: Offset(0, 4),
-                              )
+                              ),
                             ],
                           ),
                           child: Icon(
                             Icons.call_end_rounded,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                            color: Colors.white,
                             size: 28,
                           ),
                         ),
@@ -769,131 +848,158 @@ class _CallScreenState extends State<CallScreen> {
         child: Container(
           color: Colors.black54,
           alignment: Alignment.bottomCenter,
-          child: GlassCard(
-            borderRadius: 24.r,
-            color: const Color(0xFF1C1C28).withOpacity(0.9),
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 20.w,
-                right: 20.w,
-                top: 20.h,
-                bottom: 20.h,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 16.h),
+            padding: EdgeInsets.only(
+              left: 20.w,
+              right: 20.w,
+              top: 16.h,
+              bottom: 20.h,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E38),
+              borderRadius: BorderRadius.circular(24.r),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.1),
+                width: 1,
               ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Create Short Invoice",
-                          style: GoogleFonts.poppins(
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.close, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black),
-                          onPressed: () {
-                            setState(() {
-                              _isCreatingInvoice = false;
-                            });
-                          },
-                        )
-                      ],
-                    ),
-                    Divider(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12),
-                    SizedBox(height: 10.h),
-                    _buildGlassInputField(
-                      controller: _prodNameController,
-                      label: "Product Name",
-                      icon: Icons.shopping_bag_outlined,
-                      hint: "e.g., MacBook Pro M3",
-                    ),
-                    SizedBox(height: 12.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildGlassInputField(
-                            controller: _quantityController,
-                            label: "Quantity",
-                            icon: Icons.add_shopping_cart,
-                            hint: "1",
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildGlassInputField(
-                            controller: _priceController,
-                            label: "Price (৳)",
-                            icon: Icons.monetization_on_outlined,
-                            hint: "150.00",
-                            keyboardType: TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildGlassInputField(
-                            controller: _deliveryController,
-                            label: "Delivery Charge (৳)",
-                            icon: Icons.local_shipping_outlined,
-                            hint: "60.00",
-                            keyboardType: TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12.h),
-                    _buildGlassInputField(
-                      controller: _noteController,
-                      label: "Note / Short Note",
-                      icon: Icons.note_alt_outlined,
-                      hint: "e.g., Please wrap securely.",
-                    ),
-                    SizedBox(height: 20.h),
-                    Container(
-                      width: double.infinity,
-                      height: 48.h,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.r),
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF53A4CA),
-                            Color(0xFF7953CA),
-                          ],
-                        ),
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                        ),
-                        onPressed: _submitInvoice,
-                        child: Text(
-                          "Create & Send Invoice",
-                          style: GoogleFonts.poppins(
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black45,
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
                 ),
+              ],
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      margin: EdgeInsets.only(bottom: 12.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Create Short Invoice",
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: () {
+                          setState(() {
+                            _isCreatingInvoice = false;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  Divider(color: Colors.white.withOpacity(0.12)),
+                  SizedBox(height: 10.h),
+                  _buildGlassInputField(
+                    controller: _prodNameController,
+                    label: "Product Name",
+                    icon: Icons.shopping_bag_outlined,
+                    hint: "e.g., MacBook Pro M3",
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildGlassInputField(
+                          controller: _quantityController,
+                          label: "Quantity",
+                          icon: Icons.add_shopping_cart,
+                          hint: "1",
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildGlassInputField(
+                          controller: _priceController,
+                          label: "Price (৳)",
+                          icon: Icons.monetization_on_outlined,
+                          hint: "150.00",
+                          keyboardType: TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildGlassInputField(
+                          controller: _deliveryController,
+                          label: "Delivery Charge (৳)",
+                          icon: Icons.local_shipping_outlined,
+                          hint: "60.00",
+                          keyboardType: TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildGlassInputField(
+                    controller: _noteController,
+                    label: "Note / Short Note",
+                    icon: Icons.note_alt_outlined,
+                    hint: "e.g., Please wrap securely.",
+                  ),
+                  SizedBox(height: 20.h),
+                  Container(
+                    width: double.infinity,
+                    height: 48.h,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.r),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF53A4CA), Color(0xFF7953CA)],
+                      ),
+                    ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      onPressed: _submitInvoice,
+                      child: Text(
+                        "Create & Send Invoice",
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                ],
               ),
             ),
           ),
@@ -940,29 +1046,43 @@ class _CallScreenState extends State<CallScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8),
+          style: GoogleFonts.poppins(
+            color: Colors.white.withOpacity(0.9),
             fontSize: 11.sp,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(height: 4.h),
         Container(
           decoration: BoxDecoration(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.15)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.black12, width: 1),
           ),
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontSize: 13.sp),
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF1E1E38),
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w500,
+            ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6), size: 18.sp),
+              prefixIcon: Icon(
+                icon,
+                color: const Color(0xFF7953CA),
+                size: 18.sp,
+              ),
               hintText: hint,
-              hintStyle: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.35), fontSize: 13.sp),
+              hintStyle: GoogleFonts.poppins(
+                color: Colors.black38,
+                fontSize: 13.sp,
+              ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(vertical: 10.h),
+              contentPadding: EdgeInsets.symmetric(
+                vertical: 12.h,
+                horizontal: 8.w,
+              ),
             ),
           ),
         ),

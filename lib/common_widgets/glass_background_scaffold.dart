@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bd_shope_combined/controllers/theme_controller.dart';
 
+import 'package:flutter/services.dart';
+
 class GlassBackgroundScaffold extends StatelessWidget {
   final Widget body;
   final PreferredSizeWidget? appBar;
@@ -19,10 +21,18 @@ class GlassBackgroundScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: appBar,
-      body: Stack(
+    return Obx(() {
+      final isDark = Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().isDarkMode.value : true;
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: appBar,
+          body: Stack(
         children: [
             // Background Gradient and Glowing Blobs
             Positioned.fill(
@@ -103,6 +113,8 @@ class GlassBackgroundScaffold extends StatelessWidget {
       ),
       bottomNavigationBar: bottomNavigationBar,
       floatingActionButton: floatingActionButton,
-    );
+    ) // Scaffold
+      ); // AnnotatedRegion
+    }); // Obx
   }
 }

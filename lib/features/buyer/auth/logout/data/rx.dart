@@ -12,6 +12,9 @@ import 'package:bd_shope_combined/route/app_pages.dart';
 import 'package:bd_shope_combined/networks/endpoints.dart';
 import 'package:bd_shope_combined/networks/exception_handler/data_source.dart';
 import 'package:bd_shope_combined/services/web_socket_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
+import 'package:bd_shope_combined/features/seller/call/presentation/data/call_controller.dart';
 
 class PostLogoutApi {
   static final PostLogoutApi _singleton = PostLogoutApi._internal();
@@ -62,7 +65,22 @@ class PostLogoutRx extends RxResponseInt<Map<String, dynamic>> {
     await appData.remove(kKeyEmail);
     DioSingleton.instance.update("");
 
-    Get.find<WebSocketService>().disconnect();
+    if (Get.isRegistered<WebSocketService>()) {
+      Get.find<WebSocketService>().disconnect();
+      Get.delete<WebSocketService>();
+    }
+    if (Get.isRegistered<AgoraService>()) {
+      Get.delete<AgoraService>();
+    }
+    if (Get.isRegistered<ConnectionController>()) {
+      Get.delete<ConnectionController>();
+    }
+    
+    // Also disconnect and delete Seller services if they exist
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().disconnectSocket();
+      Get.delete<CallController>();
+    }
 
     Get.offAllNamed(Routes.LOGIN);
     return true;
@@ -77,7 +95,22 @@ class PostLogoutRx extends RxResponseInt<Map<String, dynamic>> {
     await appData.remove(kKeyEmail);
     DioSingleton.instance.update("");
     
-    Get.find<WebSocketService>().disconnect();
+    if (Get.isRegistered<WebSocketService>()) {
+      Get.find<WebSocketService>().disconnect();
+      Get.delete<WebSocketService>();
+    }
+    if (Get.isRegistered<AgoraService>()) {
+      Get.delete<AgoraService>();
+    }
+    if (Get.isRegistered<ConnectionController>()) {
+      Get.delete<ConnectionController>();
+    }
+    
+    // Also disconnect and delete Seller services if they exist
+    if (Get.isRegistered<CallController>()) {
+      Get.find<CallController>().disconnectSocket();
+      Get.delete<CallController>();
+    }
 
     Get.offAllNamed(Routes.LOGIN);
     return true;

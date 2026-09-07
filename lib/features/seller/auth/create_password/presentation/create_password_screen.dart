@@ -62,7 +62,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
       return;
     }
 
-    bool success = await postResetPasswordRx.resetPassword(
+    bool success = await sellerPostResetPasswordRx.resetPassword(
       email: email,
       otp: otp,
       password: password,

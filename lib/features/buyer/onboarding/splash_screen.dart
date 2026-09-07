@@ -62,7 +62,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       _storage.write(kKeyIsFirstTime, false);
       Get.offAllNamed(Routes.ONBOARDING);
     } else if (isLoggedIn) {
-      Get.offAllNamed(Routes.HOME);
+      final role = _storage.read<String>('userRole') ?? '';
+      if (role == 'vendor' || role == 'seller') {
+        Get.offAllNamed(Routes.SELLER_HOME);
+      } else {
+        Get.offAllNamed(Routes.HOME);
+      }
     } else {
       Get.offAllNamed(Routes.ROLE_SELECTION);
     }

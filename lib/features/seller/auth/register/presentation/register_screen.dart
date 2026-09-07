@@ -116,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    bool success = await postRegisterRx.signUpdata(
+    bool success = await sellerPostRegisterRx.signUpdata(
       name: name,
       email: email,
       password: password,

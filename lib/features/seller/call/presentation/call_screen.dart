@@ -12,9 +12,11 @@ import 'package:bd_shope_combined/constants/app_colors.dart';
 import 'package:bd_shope_combined/common_widgets/glass_background_scaffold.dart';
 import 'package:bd_shope_combined/common_widgets/glass_card.dart';
 import 'package:bd_shope_combined/networks/dio/dio.dart';
+import 'package:bd_shope_combined/helpers/di.dart';
+import 'package:bd_shope_combined/constants/app_constants.dart';
 
 import 'data/call_controller.dart';
-import 'data/agora_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
 
 class CallScreen extends StatefulWidget {
   const CallScreen({super.key});
@@ -123,20 +125,24 @@ class _CallScreenState extends State<CallScreen> {
     final qty = int.tryParse(qtyText) ?? 1;
     final priceVal = double.tryParse(priceText) ?? 0.0;
 
-    final sessionId = Get.isRegistered<CallController>()
-        ? Get.find<CallController>().currentCallId.value
-        : "98765432-abcd-efgh-ijkl-1234567890ab";
+    final callController = Get.isRegistered<CallController>() ? Get.find<CallController>() : null;
+    final sessionId = callController?.currentCallId.value ?? "98765432-abcd-efgh-ijkl-1234567890ab";
 
-    final channelName = AgoraService.instance.currentChannelId ?? "call_room_xyz123";
+    final channelName = AgoraService.to.currentChannelId ?? "call_room_xyz123";
     final uuid = _generateDynamicUUID();
+
+    final buyerIdStr = callController?.currentCustomerId.value ?? '';
+    final buyerId = int.tryParse(buyerIdStr) ?? 5;
+    final vendorIdStr = appData.read(kKeyUserID)?.toString() ?? '';
+    final vendorId = int.tryParse(vendorIdStr) ?? 2;
 
     final payload = {
       "id": uuid,
       "session": sessionId.isNotEmpty ? sessionId : "98765432-abcd-efgh-ijkl-1234567890ab",
       "channel_name": channelName,
-      "buyer": 5,        // (buyer ID, automatically from session)
-      "vendor": 2,       // (vendor ID, automatically from session)
-      "tag": 10,         // (automatically from session)
+      "buyer": buyerId,
+      "vendor": vendorId,
+      "tag": 10,
       "product_name": name,
       "price": priceVal.toStringAsFixed(2),
       "quantity": qty,
@@ -181,7 +187,7 @@ class _CallScreenState extends State<CallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final agoraService = AgoraService.instance;
+    final agoraService = AgoraService.to;
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
@@ -362,7 +368,7 @@ class _CallScreenState extends State<CallScreen> {
                               setState(() {
                                 _isCameraOff = !_isCameraOff;
                               });
-                              agoraService.toggleCamera(_isCameraOff);
+                              agoraService.muteLocalVideo(_isCameraOff);
                             },
                           ),
                           // Switch Camera Button
@@ -382,7 +388,7 @@ class _CallScreenState extends State<CallScreen> {
                               setState(() {
                                 _isMuted = !_isMuted;
                               });
-                              agoraService.toggleMute(_isMuted);
+                              agoraService.muteLocalAudio(_isMuted);
                             },
                           ),
                           // Speaker phone
@@ -393,7 +399,7 @@ class _CallScreenState extends State<CallScreen> {
                               setState(() {
                                 _isSpeakerOn = !_isSpeakerOn;
                               });
-                              agoraService.toggleSpeaker(_isSpeakerOn);
+                              agoraService.enableSpeakerphone(_isSpeakerOn);
                             },
                           ),
                           // End Call

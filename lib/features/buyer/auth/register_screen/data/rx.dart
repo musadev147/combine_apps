@@ -62,13 +62,36 @@ class PostRegisterRx extends RxResponseInt<PostRegisterModel> {
   Future<bool> handleErrorWithReturn(error) async {
     String message = "Something went wrong";
     if (error is DioException) {
-      final failure = ErrorHandler.handle(error).failure;
-      message = failure.responseMessage;
+      if (error.response?.data is Map<String, dynamic>) {
+        final resData = error.response!.data as Map<String, dynamic>;
+        if (resData['errors'] != null) {
+          final errors = resData['errors'];
+          if (errors is Map<String, dynamic>) {
+            List<String> messages = [];
+            errors.forEach((key, val) {
+              if (val is List) {
+                messages.add(val.join(", "));
+              } else {
+                messages.add(val.toString());
+              }
+            });
+            if (messages.isNotEmpty) {
+              message = messages.join("\n");
+            }
+          } else if (errors is String) {
+            message = errors;
+          }
+        } else if (resData['message'] != null) {
+          message = resData['message'].toString();
+        }
+      } else {
+        final failure = ErrorHandler.handle(error).failure;
+        message = failure.responseMessage;
+      }
     } else if (error is Exception) {
       message = error.toString().replaceFirst('Exception: ', '');
     }
     AppToast.error(message);
-    await Future.delayed(const Duration(seconds: 2));
     return false;
   }
 }

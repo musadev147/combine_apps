@@ -16,8 +16,18 @@ class WebSocketService extends GetxService {
   bool _isConnecting = false;
   bool get isConnected => _isConnected;
   
-  // Callback when a message is received
-  void Function(Map<String, dynamic>)? onMessageReceived;
+  // List of callbacks when a message is received
+  final List<void Function(Map<String, dynamic>)> _messageListeners = [];
+
+  void addMessageListener(void Function(Map<String, dynamic>) listener) {
+    if (!_messageListeners.contains(listener)) {
+      _messageListeners.add(listener);
+    }
+  }
+
+  void removeMessageListener(void Function(Map<String, dynamic>) listener) {
+    _messageListeners.remove(listener);
+  }
   // Callback when connection status changes
   void Function(bool)? onConnectionStatusChanged;
 
@@ -87,7 +97,9 @@ class WebSocketService extends GetxService {
           try {
             if (message is String) {
               final Map<String, dynamic> data = jsonDecode(message) as Map<String, dynamic>;
-              onMessageReceived?.call(data);
+              for (var listener in _messageListeners) {
+                listener(data);
+              }
             }
           } catch (e) {
             log('Error decoding WebSocket message: $e');
@@ -196,7 +208,7 @@ class WebSocketService extends GetxService {
     if (!_isConnected || _channel == null) return;
     final payload = {
       'action': 'cancel_call',
-      'session_id': sessionId,
+      if (sessionId.isNotEmpty) 'session_id': sessionId,
     };
     log('WebSocket Sending Cancel Call: $payload');
     _channel!.sink.add(jsonEncode(payload));

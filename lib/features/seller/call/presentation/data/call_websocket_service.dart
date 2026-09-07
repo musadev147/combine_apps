@@ -44,7 +44,12 @@ class CallWebSocketService {
     log('Connecting to WebSocket (Attempt #$_connectionAttempt): $connectionUrl');
 
     try {
-      _webSocket = await WebSocket.connect(connectionUrl).timeout(const Duration(seconds: 10));
+      _webSocket = await WebSocket.connect(
+        connectionUrl,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
       _isConnecting = false;
       _connectionAttempt = 0; // Reset attempt index on success
       log('WebSocket connected successfully.');

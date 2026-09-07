@@ -532,7 +532,9 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
                 SizedBox(height: 8.h),
                 Obx(() {
-                  final connectionController = Get.find<ConnectionController>();
+                  final connectionController = Get.isRegistered<ConnectionController>() 
+                      ? Get.find<ConnectionController>() 
+                      : Get.put(ConnectionController(), permanent: true);
                   return Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,

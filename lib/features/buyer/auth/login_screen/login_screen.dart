@@ -46,9 +46,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: GlassBackground(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        Get.offAllNamed(Routes.ROLE_SELECTION);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: GlassBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -81,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 16.h),
                     Center(
                       child: Text(
-                        'Damadami',
+                        'Damadami Live',
                         style: GoogleFonts.outfit(
                           fontSize: 32.sp,
                           fontWeight: FontWeight.w900,
@@ -102,19 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 36.h),
 
-                    // Email/Username Input
+                    // Email / Phone Number Input
                     GlassTextField(
                       controller: _emailController,
-                      labelText: 'Gmail / Email Address',
-                      hintText: 'Enter your email',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      keyboardType: TextInputType.emailAddress,
+                      labelText: 'Email / Phone Number',
+                      hintText: 'Enter email or phone number',
+                      prefixIcon: Icon(Icons.person_outline),
+                      keyboardType: TextInputType.text,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Email is required';
-                        }
-                        if (!GetUtils.isEmail(value.trim())) {
-                          return 'Enter a valid email';
+                          return 'Email or Phone Number is required';
                         }
                         return null;
                       },
@@ -199,6 +202,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+      )
     );
   }
 }

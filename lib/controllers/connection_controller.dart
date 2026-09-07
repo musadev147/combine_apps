@@ -12,6 +12,8 @@ import 'package:bd_shope_combined/networks/dio/dio.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:bd_shope_combined/features/buyer/coustomer/serach/presentation/data/api.dart';
 import 'package:bd_shope_combined/features/buyer/coustomer/serach/presentation/invoice_section/data/notification_service.dart';
+import 'package:bd_shope_combined/helpers/di.dart';
+import 'package:bd_shope_combined/constants/app_constants.dart';
 
 
 class EcommerceProduct {
@@ -209,13 +211,22 @@ class ConnectionController extends GetxController {
     recalculateAllScores();
 
     // Hook up WebSocket callbacks and connect
-    final wsService = Get.find<WebSocketService>();
-    wsService.onMessageReceived = _handleWebSocketMessage;
-    wsService.connect();
+    if (Get.isRegistered<WebSocketService>()) {
+      final wsService = Get.find<WebSocketService>();
+      wsService.addMessageListener(_handleWebSocketMessage);
+      wsService.connect();
+    }
   }
 
   void _handleWebSocketMessage(Map<String, dynamic> data) {
     final type = data['type'] ?? data['action'];
+    
+    // If we are a seller, DO NOT process call events here!
+    // Seller has CallController for this. We only process new_invoice.
+    if (currentRole.value == 'seller' && type != 'new_invoice') {
+      return;
+    }
+
     if (type == 'call_searching') {
       currentSessionId.value = data['session_id']?.toString() ?? '';
       callState.value = 'broadcasting';
@@ -242,7 +253,9 @@ class ConnectionController extends GetxController {
       }
     } else if (type == 'call_started') {
       currentSessionId.value = data['session_id']?.toString() ?? '';
-      activeBuyerId.value = int.tryParse(data['buyer']?.toString() ?? data['buyer_id']?.toString() ?? '') ?? 5;
+      final storedUserId = appData.read(kKeyUserID)?.toString();
+      final parsedBuyerId = int.tryParse(data['buyer']?.toString() ?? data['buyer_id']?.toString() ?? storedUserId ?? '');
+      activeBuyerId.value = parsedBuyerId ?? 5;
       activeVendorId.value = int.tryParse(data['vendor']?.toString() ?? data['vendor_id']?.toString() ?? data['seller_id']?.toString() ?? '') ?? 2;
       activeTagId.value = int.tryParse(data['tag']?.toString() ?? data['tag_id']?.toString() ?? '') ?? 10;
       final token = data['token'] as String?;
@@ -1459,7 +1472,14 @@ class ConnectionController extends GetxController {
     _callTimer?.cancel();
     
     // Cancel call on WebSocket and Agora RTC
-    Get.find<WebSocketService>().cancelCall(currentSessionId.value);
+    final wsService = Get.find<WebSocketService>();
+    if (currentSessionId.value.isNotEmpty) {
+      wsService.cancelCall(currentSessionId.value);
+    } else {
+      // Force reconnect to let the server know we dropped the call prematurely
+      wsService.disconnect();
+      Future.delayed(const Duration(milliseconds: 500), () => wsService.connect());
+    }
     Get.find<AgoraService>().leaveCallChannel();
 
     final endedSeller = connectedSeller.value;

@@ -85,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
       return;
     }
 
-    await postVerifyOtpRx.verifyOtp(
+    await sellerPostVerifyOtpRx.verifyOtp(
       email: email,
       otp: otp,
       fromRegister: fromRegister,
@@ -95,7 +95,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   void _resendOtp() async {
     if (!_canResend) return;
-    bool success = await postVerifyOtpRx.resendOtp(email: email);
+    bool success = await sellerPostVerifyOtpRx.resendOtp(email: email);
     if (success) {
       _startTimer();
     }

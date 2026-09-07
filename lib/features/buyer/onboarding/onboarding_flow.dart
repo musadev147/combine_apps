@@ -48,14 +48,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         curve: Curves.easeInOut,
       );
     } else {
-      _finish();
+      _completeOnboarding();
     }
   }
 
-  void _skip() => _finish();
+  void _skip() => _completeOnboarding();
 
-  void _finish() {
-    Get.offAllNamed(Routes.LOGIN);
+  void _completeOnboarding() {
+    Get.offAllNamed(Routes.ROLE_SELECTION);
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -11,9 +12,13 @@ import 'package:bd_shope_combined/constants/text_font_style.dart';
 import 'package:bd_shope_combined/common_widgets/glass_background_scaffold.dart';
 import 'package:bd_shope_combined/common_widgets/glass_card.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:bd_shope_combined/services/web_socket_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/data/call_controller.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/data/notification_service.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/call_screen.dart';
+import '../../../../services/agora_service.dart';
+import '../../../../services/web_socket_service.dart';
 import 'data/tag_api.dart';
 import 'model/get_all_tag_model.dart';
 import 'package:bd_shope_combined/controllers/connection_controller.dart';
@@ -88,9 +93,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void initState() {
     super.initState();
     try {
-      if (Get.isRegistered<CallController>()) {
-        Get.find<CallController>().autoConnectIfLoggedIn();
+      if (!Get.isRegistered<WebSocketService>()) {
+        Get.put(WebSocketService(), permanent: true);
       }
+      if (!Get.isRegistered<AgoraService>()) {
+        Get.put(AgoraService(), permanent: true);
+      }
+      if (!Get.isRegistered<ConnectionController>()) {
+        Get.put(ConnectionController(), permanent: true);
+      }
+      Get.find<ConnectionController>().setRole('seller');
+      if (!Get.isRegistered<CallController>()) {
+        Get.put(CallController(), permanent: true);
+      }
+      Get.find<CallController>().autoConnectIfLoggedIn();
       NotificationService.instance.registerToken();
       _loadVendorTagsFromApi();
       getCategoryRx.fetchCategories();
@@ -383,6 +399,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: tc.isDarkMode.value ? Brightness.light : Brightness.dark,
+              statusBarBrightness: tc.isDarkMode.value ? Brightness.dark : Brightness.light,
+            ),
             centerTitle: false,
             title: ClipRRect(
               borderRadius: BorderRadius.circular(12),

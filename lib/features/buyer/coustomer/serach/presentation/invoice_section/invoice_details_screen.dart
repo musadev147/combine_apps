@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
+import 'package:dio/dio.dart';
 import 'package:bd_shope_combined/common_widgets/glass_card.dart';
 import 'package:bd_shope_combined/networks/dio/dio.dart';
 import 'package:bd_shope_combined/common_wigdets/glass_background.dart';
@@ -166,7 +167,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E38),
           borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
-          border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withOpacity(0.1)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -177,7 +178,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                 width: 50.w,
                 height: 5.h,
                 decoration: BoxDecoration(
-                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.3),
+                  color: Colors.white.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
@@ -186,7 +187,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             Text(
               'Owner Payout Methods',
               style: GoogleFonts.outfit(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                color: Colors.white,
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -195,7 +196,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             Text(
               'Please send the payment to one of the accounts below, then proceed to submit your payment details.',
               style: GoogleFonts.poppins(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                color: Colors.white70,
                 fontSize: 12.sp,
               ),
             ),
@@ -225,7 +226,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                     return Center(
                       child: Text(
                         'No payout methods found for this owner.',
-                        style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 13.sp),
+                        style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13.sp),
                       ),
                     );
                   }
@@ -258,9 +259,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                               margin: EdgeInsets.only(bottom: 12.h),
                               padding: EdgeInsets.all(14.r),
                               decoration: BoxDecoration(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+                                color: Colors.white,
                                 borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+                                border: Border.all(color: Colors.black12),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +273,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                       Text(
                                         'Bank Account Details',
                                         style: GoogleFonts.outfit(
-                                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                          color: const Color(0xFF1E1E38),
                                           fontSize: 14.sp,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -340,9 +341,9 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+        border: Border.all(color: Colors.black12),
       ),
       child: Row(
         children: [
@@ -361,18 +362,18 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 11.sp, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.poppins(color: Colors.black54, fontSize: 11.sp, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   value,
-                  style: GoogleFonts.outfit(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontSize: 15.sp, fontWeight: FontWeight.bold),
+                  style: GoogleFonts.outfit(color: const Color(0xFF1E1E38), fontSize: 15.sp, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: Icon(Icons.copy, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 18.r),
+            icon: Icon(Icons.copy, color: Colors.black54, size: 18.r),
             onPressed: () {
               Clipboard.setData(ClipboardData(text: value));
               Get.snackbar(
@@ -400,13 +401,13 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             width: 100.w,
             child: Text(
               label,
-              style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.5), fontSize: 11.sp),
+              style: GoogleFonts.poppins(color: Colors.black54, fontSize: 11.sp),
             ),
           ),
           Expanded(
             child: Text(
               val,
-              style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8), fontSize: 12.sp, fontWeight: FontWeight.w500),
+              style: GoogleFonts.poppins(color: const Color(0xFF1E1E38), fontSize: 12.sp, fontWeight: FontWeight.w500),
             ),
           ),
           if (canCopy)
@@ -424,7 +425,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
               },
               child: Padding(
                 padding: EdgeInsets.only(left: 8.w),
-                child: Icon(Icons.copy, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 14.r),
+                child: Icon(Icons.copy, color: Colors.black54, size: 14.r),
               ),
             ),
         ],
@@ -456,7 +457,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E38),
               borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
-              border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -469,7 +470,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                       width: 50.w,
                       height: 5.h,
                       decoration: BoxDecoration(
-                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.3),
+                        color: Colors.white.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(10.r),
                       ),
                     ),
@@ -478,7 +479,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                   Text(
                     'Complete Payment',
                     style: GoogleFonts.outfit(
-                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                      color: Colors.white,
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                     ),
@@ -488,7 +489,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                   // Method Selection
                   Text(
                     'Payment Method',
-                    style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 12.sp, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.poppins(color: Colors.white70, fontSize: 12.sp, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8.h),
                   Row(
@@ -504,17 +505,17 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.05),
+                            color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.08),
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.1),
+                              color: isSelected ? const Color(0xFF7953CA) : Colors.white.withOpacity(0.12),
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
                           child: Text(
                             method.toUpperCase(),
                             style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                              color: isSelected ? Colors.white : Colors.white70,
                               fontSize: 11.sp,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
@@ -631,9 +632,16 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                                   );
                                 }
                               } catch (e) {
+                                String errorMsg = 'An error occurred: $e';
+                                if (e is DioException && e.response?.data != null) {
+                                  final resData = e.response!.data;
+                                  if (resData is Map && resData.containsKey('error')) {
+                                    errorMsg = resData['error'].toString();
+                                  }
+                                }
                                 Get.snackbar(
                                   'Error',
-                                  'An error occurred: $e',
+                                  errorMsg,
                                   backgroundColor: Colors.redAccent.withOpacity(0.9),
                                   colorText: Colors.white,
                                 );
@@ -647,7 +655,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                           ? SizedBox(
                               width: 20.r,
                               height: 20.r,
-                              child: CircularProgressIndicator(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white, strokeWidth: 2),
+                              child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
                           : Text(
                               'Confirm Payment',
@@ -683,7 +691,7 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         Text(
           label,
           style: GoogleFonts.poppins(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+            color: Colors.white70,
             fontSize: 11.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -691,22 +699,22 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
         SizedBox(height: 4.h),
         Container(
           decoration: BoxDecoration(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.1)),
+            border: Border.all(color: Colors.black12),
           ),
           child: TextFormField(
             controller: controller,
             readOnly: readOnly,
             style: GoogleFonts.poppins(
-              color: readOnly ? Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54 : Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+              color: readOnly ? Colors.black54 : const Color(0xFF1E1E38),
               fontSize: 13.sp,
             ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, size: 18.sp),
+              prefixIcon: Icon(icon, color: const Color(0xFF7953CA), size: 18.sp),
               hintText: hint,
               hintStyle: GoogleFonts.poppins(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.3),
+                color: Colors.black38,
                 fontSize: 13.sp,
               ),
               border: InputBorder.none,

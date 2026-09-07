@@ -37,7 +37,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
-    bool success = await postForgotPasswordRx.forgotPasswordFunc(email: email);
+    bool success = await sellerPostForgotPasswordRx.forgotPasswordFunc(email: email);
     if (success) {
       Get.toNamed(Routes.OTP, arguments: {
         'email': email,

@@ -34,4 +34,5 @@ class ThemeController extends GetxController {
   Color get inputHintColor => isDarkMode.value ? Colors.white.withOpacity(0.35) : Colors.black.withOpacity(0.45);
   Color get iconColor => isDarkMode.value ? Colors.white.withOpacity(0.6) : Colors.black.withOpacity(0.6);
   Color get dividerColor => isDarkMode.value ? Colors.white12 : Colors.black12;
+  Color get scaffoldBackgroundColor => isDarkMode.value ? const Color(0xff0E0E0E) : Colors.white;
 }

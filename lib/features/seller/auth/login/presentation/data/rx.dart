@@ -15,6 +15,9 @@ import 'package:bd_shope_combined/features/seller/auth/login/presentation/model/
 import 'api.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/data/call_controller.dart';
 import 'package:bd_shope_combined/features/seller/call/presentation/data/notification_service.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
+import 'package:bd_shope_combined/services/web_socket_service.dart';
+import 'package:bd_shope_combined/services/agora_service.dart';
 
 class PostLoginRx extends RxResponseInt<PostLoginModel> {
   final api = PostLoginApi.instance;
@@ -59,7 +62,7 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
     }
 
     if (roleName != 'vendor' && roleName != 'seller') {
-      AppToast.error("This account is not registered as a Vendor. Please use the correct app.");
+      AppToast.error("Role mismatch: Account is '$roleName', not Vendor. Please use the correct app.");
       return false;
     }
 
@@ -76,6 +79,7 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
     final permanentAddress = data.user?.permanentAddress ?? "";
 
     await appData.write(kKeyIsLoggedIn, true);
+    await appData.write('userRole', roleName);
     await appData.write(kKeyEmail, email);
     await appData.write(kKeyAccessToken, accessToken);
     if (refreshToken.isNotEmpty) {
@@ -92,9 +96,20 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
 
     // Establish real-time WebSocket connection
     try {
-      if (Get.isRegistered<CallController>()) {
-        Get.find<CallController>().connectSocket(accessToken);
+      if (!Get.isRegistered<WebSocketService>()) {
+        Get.put(WebSocketService(), permanent: true);
       }
+      if (!Get.isRegistered<AgoraService>()) {
+        Get.put(AgoraService(), permanent: true);
+      }
+      if (!Get.isRegistered<ConnectionController>()) {
+        Get.put(ConnectionController(), permanent: true);
+      }
+      if (!Get.isRegistered<CallController>()) {
+        Get.put(CallController(), permanent: true);
+      }
+      Get.find<WebSocketService>().connect();
+      Get.find<CallController>().connectSocket(accessToken);
     } catch (e) {
       log("PostLoginRx: Failed to auto-connect Call WebSocket: $e");
     }

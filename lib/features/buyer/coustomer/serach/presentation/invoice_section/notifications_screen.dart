@@ -116,6 +116,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
+                iconTheme: IconThemeData(
+                  color: Get.isRegistered<ThemeController>()
+                      ? Get.find<ThemeController>().textColor
+                      : Colors.black87,
+                ),
                 title: Text(
                   'Notification Center',
                   style: GoogleFonts.outfit(

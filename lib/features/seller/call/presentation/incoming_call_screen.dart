@@ -68,9 +68,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                         decoration: BoxDecoration(
-                          color: AppColors.cWhite.withOpacity(0.05),
+                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground.withOpacity(0.5) : AppColors.cWhite.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(20.r),
-                          border: Border.all(color: AppColors.cWhite.withOpacity(0.1)),
+                          border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : AppColors.cWhite.withOpacity(0.1)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -147,8 +147,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
                                           imgUrl,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) => CircleAvatar(
-                                            backgroundColor: AppColors.c1C1C28,
-                                            child: Icon(Icons.person, size: 60.sp, color: AppColors.cWhite),
+                                            backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : AppColors.c1C1C28,
+                                            child: Icon(Icons.person, size: 60.sp, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : AppColors.cWhite),
                                           ),
                                         );
                                       } else {
@@ -157,15 +157,15 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
                                           imgUrl,
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) => CircleAvatar(
-                                            backgroundColor: AppColors.c1C1C28,
-                                            child: Icon(Icons.person, size: 60.sp, color: AppColors.cWhite),
+                                            backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : AppColors.c1C1C28,
+                                            child: Icon(Icons.person, size: 60.sp, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : AppColors.cWhite),
                                           ),
                                         );
                                       }
                                     }
                                     return CircleAvatar(
-                                      backgroundColor: AppColors.c1C1C28,
-                                      child: Icon(Icons.person, size: 60.sp, color: AppColors.cWhite),
+                                      backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : AppColors.c1C1C28,
+                                      child: Icon(Icons.person, size: 60.sp, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : AppColors.cWhite),
                                     );
                                   }),
                                 ),
@@ -180,7 +180,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
                       Obx(() => Text(
                         _callController.currentCustomerId.value,
                         style: TextStyle(
-                          color: AppColors.cWhite,
+                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : AppColors.cWhite,
                           fontSize: 24.sp,
                           fontWeight: FontWeight.bold,
                         ),
@@ -206,7 +206,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> with SingleTick
                       Text(
                         "Ringing...",
                         style: TextStyle(
-                          color: AppColors.cWhite.withOpacity(0.5),
+                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor.withOpacity(0.5) : AppColors.cWhite.withOpacity(0.5),
                           fontSize: 14.sp,
                           letterSpacing: 1.2,
                         ),

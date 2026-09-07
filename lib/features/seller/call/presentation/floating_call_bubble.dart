@@ -93,7 +93,7 @@ class _FloatingCallBubbleState extends State<FloatingCallBubble> with SingleTick
                     child: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF0F0C20).withOpacity(0.75),
+                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : const Color(0xFF0F0C20).withOpacity(0.75),
                         border: Border.all(
                           color: const Color(0xFF53A4CA).withOpacity(0.5 + (0.3 * _pulseController.value)),
                           width: 1.5.r,
