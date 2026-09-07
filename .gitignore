@@ -45,11 +45,5 @@ app.*.map.json
 /android/app/release
 
 # Keystore and credentials
-key.properties
-**/key.properties
-*.jks
-*.keystore
-**/*.jks
-**/*.keystore
-*.pem
-**/*.pem
+# key.properties and keystore files allowed for private repo
+
