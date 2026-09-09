@@ -399,6 +399,7 @@ class _InvoicesTabState extends State<InvoicesTab> {
               _buildDetailRow(tc, "Quantity", "${invoice.quantity ?? 1} Pcs"),
               _buildDetailRow(tc, "Price Per Piece", "৳${invoice.pricePerPiece ?? '0.00'}"),
               _buildDetailRow(tc, "Delivery Charge", "৳${invoice.deliveryCharge ?? '0.00'}"),
+              _buildDetailRow(tc, "Service Charge", "৳${invoice.serviceCharge ?? '0.00'}"),
               SizedBox(height: 10.h),
               Divider(color: tc.dividerColor),
               SizedBox(height: 10.h),

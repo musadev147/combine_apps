@@ -956,6 +956,20 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                         ),
                       ],
                     ),
+                    SizedBox(height: 8.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Service Charge',
+                          style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 12.sp),
+                        ),
+                        Text(
+                          '৳${(double.tryParse(_invoice!.serviceCharge ?? '0') ?? 0.0).toStringAsFixed(2)}',
+                          style: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontSize: 13.sp, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                       child: Divider(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12, height: 1),

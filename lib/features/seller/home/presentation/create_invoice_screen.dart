@@ -37,6 +37,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   late TextEditingController _qtyCtrl;
   late TextEditingController _addressCtrl;
   late TextEditingController _deliveryChargeCtrl;
+  late TextEditingController _serviceChargeCtrl;
 
   double _subtotal = 0.0;
   double _total = 0.0;
@@ -54,16 +55,19 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _qtyCtrl = TextEditingController(text: widget.initialLog?["qty"]?.toString() ?? "1");
     _addressCtrl = TextEditingController(text: widget.initialLog?["note"] ?? "");
     _deliveryChargeCtrl = TextEditingController(text: widget.initialLog?["delivery"]?.toString() ?? "0.0");
+    _serviceChargeCtrl = TextEditingController(text: widget.initialLog?["service_charge"]?.toString() ?? "0.0");
 
     _priceCtrl.addListener(_calculateTotals);
     _qtyCtrl.addListener(_calculateTotals);
     _deliveryChargeCtrl.addListener(_calculateTotals);
+    _serviceChargeCtrl.addListener(_calculateTotals);
     
     final price = double.tryParse(_priceCtrl.text) ?? 0.0;
     final qty = double.tryParse(_qtyCtrl.text) ?? 0.0;
     final delivery = double.tryParse(_deliveryChargeCtrl.text) ?? 0.0;
+    final serviceCharge = double.tryParse(_serviceChargeCtrl.text) ?? 0.0;
     _subtotal = price * qty;
-    _total = _subtotal + delivery;
+    _total = _subtotal + delivery + serviceCharge;
 
     _fetchUsersList();
   }
@@ -200,6 +204,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _qtyCtrl.dispose();
     _addressCtrl.dispose();
     _deliveryChargeCtrl.dispose();
+    _serviceChargeCtrl.dispose();
     super.dispose();
   }
 
@@ -207,10 +212,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final price = double.tryParse(_priceCtrl.text) ?? 0.0;
     final qty = double.tryParse(_qtyCtrl.text) ?? 0.0;
     final delivery = double.tryParse(_deliveryChargeCtrl.text) ?? 0.0;
+    final serviceCharge = double.tryParse(_serviceChargeCtrl.text) ?? 0.0;
 
     setState(() {
       _subtotal = price * qty;
-      _total = _subtotal + delivery;
+      _total = _subtotal + delivery + serviceCharge;
     });
   }
 
@@ -444,6 +450,18 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           return null;
                         },
                       ),
+                      _buildTextField(
+                        controller: _serviceChargeCtrl,
+                        labelText: "Service Charge (৳)",
+                        icon: Icons.miscellaneous_services_outlined,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                            return "Invalid service charge";
+                          }
+                          return null;
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -472,6 +490,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                         children: [
                           Text("Delivery Charge", style: TextStyle(color: tc.textSecondaryColor)),
                           Text("৳ ${(double.tryParse(_deliveryChargeCtrl.text) ?? 0.0).toStringAsFixed(2)}", style: TextStyle(color: tc.textColor, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Service Charge", style: TextStyle(color: tc.textSecondaryColor)),
+                          Text("৳ ${(double.tryParse(_serviceChargeCtrl.text) ?? 0.0).toStringAsFixed(2)}", style: TextStyle(color: tc.textColor, fontWeight: FontWeight.w600)),
                         ],
                       ),
                       Padding(
@@ -525,9 +551,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                          final quantity = int.tryParse(_qtyCtrl.text.trim()) ?? 1;
                          final note = _addressCtrl.text.trim();
                          final delivery = _deliveryChargeCtrl.text.trim();
+                         final serviceCharge = _serviceChargeCtrl.text.trim();
 
                          final buyerPhone = _selectedUser?['phone'] ?? _selectedUser?['phone_number'] ?? '';
-                         final double totalPriceVal = (double.tryParse(price) ?? 0.0) * quantity + (double.tryParse(delivery) ?? 0.0);
+                         final double totalPriceVal = (double.tryParse(price) ?? 0.0) * quantity + (double.tryParse(delivery) ?? 0.0) + (double.tryParse(serviceCharge) ?? 0.0);
 
                          final invoiceModel = PostInvoiceModel(
                            buyer: buyer,
@@ -543,6 +570,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                            tag: null,
                            shortNote: isShortNote ? (widget.initialLog?["id"]?.toString()) : null,
                            deliveryCharge: delivery,
+                           serviceCharge: serviceCharge,
                          );
 
                         final success = await InvoiceApi.instance.createInvoice(invoiceModel);
@@ -558,7 +586,8 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                             "status": "Pending",
                             "date": "Just now",
                             "price": double.tryParse(price) ?? 0.0,
-                            "delivery": double.tryParse(delivery) ?? 0.0
+                            "delivery": double.tryParse(delivery) ?? 0.0,
+                            "serviceCharge": double.tryParse(serviceCharge) ?? 0.0
                           };
                           widget.onCreateInvoice(newInv);
                           Navigator.pop(context);

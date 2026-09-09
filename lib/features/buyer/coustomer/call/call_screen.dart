@@ -536,7 +536,7 @@ class _CallScreenState extends State<CallScreen> {
                               ),
                               SizedBox(width: 8.w),
                               Text(
-                                "Create Invoice",
+                                "Short Note",
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14.sp,
@@ -746,7 +746,7 @@ class _CallScreenState extends State<CallScreen> {
                               ),
                               SizedBox(width: 8.w),
                               Text(
-                                "Create Invoice",
+                                "Short Note",
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 14.sp,
@@ -891,7 +891,7 @@ class _CallScreenState extends State<CallScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Create Short Invoice",
+                        "Create Short Note",
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 18.sp,
@@ -924,7 +924,7 @@ class _CallScreenState extends State<CallScreen> {
                           controller: _quantityController,
                           label: "Quantity",
                           icon: Icons.add_shopping_cart,
-                          hint: "1",
+                          hint: "0",
                           keyboardType: TextInputType.number,
                         ),
                       ),
@@ -947,25 +947,25 @@ class _CallScreenState extends State<CallScreen> {
                     ],
                   ),
                   SizedBox(height: 12.h),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildGlassInputField(
-                          controller: _deliveryController,
-                          label: "Delivery Charge (৳)",
-                          icon: Icons.local_shipping_outlined,
-                          hint: "60.00",
-                          keyboardType: TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: _buildGlassInputField(
+                  //         controller: _deliveryController,
+                  //         label: "Delivery Charge (৳)",
+                  //         icon: Icons.local_shipping_outlined,
+                  //         hint: "60.00",
+                  //         keyboardType: TextInputType.numberWithOptions(
+                  //           decimal: true,
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
                   SizedBox(height: 12.h),
                   _buildGlassInputField(
                     controller: _noteController,
-                    label: "Note / Short Note",
+                    label: "Note",
                     icon: Icons.note_alt_outlined,
                     hint: "e.g., Please wrap securely.",
                   ),
@@ -989,7 +989,7 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                       onPressed: _submitInvoice,
                       child: Text(
-                        "Create & Send Invoice",
+                        "Send Short Note",
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 15.sp,

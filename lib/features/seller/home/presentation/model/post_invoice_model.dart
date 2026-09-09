@@ -12,6 +12,7 @@ class PostInvoiceModel {
   String? tag;
   String? shortNote;
   String? deliveryCharge;
+  String? serviceCharge;
 
   PostInvoiceModel({
     this.totalPrice,
@@ -27,6 +28,7 @@ class PostInvoiceModel {
     this.tag,
     this.shortNote,
     this.deliveryCharge,
+    this.serviceCharge,
   });
 
   PostInvoiceModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class PostInvoiceModel {
     tag = json['tag'];
     shortNote = json['short_note'];
     deliveryCharge = json['delivery_charge']?.toString();
+    serviceCharge = json['service_charge']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -60,6 +63,7 @@ class PostInvoiceModel {
     data['tag'] = tag;
     data['short_note'] = shortNote;
     data['delivery_charge'] = deliveryCharge;
+    data['service_charge'] = serviceCharge;
     return data;
   }
 }
