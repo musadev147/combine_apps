@@ -129,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (success) {
-      Get.toNamed(Routes.OTP, arguments: {
+      Get.toNamed(Routes.SELLER_OTP, arguments: {
         'email': email,
         'fromRegister': true,
       });

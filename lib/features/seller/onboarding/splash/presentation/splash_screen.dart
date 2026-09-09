@@ -59,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     final hasCompleted = appData.read<bool>('has_completed_onboarding') ?? false;
     if (hasCompleted) {
-      Get.offAllNamed(Routes.LOGIN);
+      Get.offAllNamed(Routes.SELLER_LOGIN);
     } else {
       Get.offAllNamed(Routes.ONBOARDING);
     }

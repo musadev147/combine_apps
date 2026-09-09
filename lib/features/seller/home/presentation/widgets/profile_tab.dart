@@ -289,42 +289,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 ),
                 Divider(color: tc.dividerColor, height: 28),
                 
-                // Beautiful Theme Mode Switcher
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  decoration: BoxDecoration(
-                    color: tc.inputBackground,
-                    borderRadius: BorderRadius.circular(10.r),
-                    border: Border.all(color: tc.inputBorderColor),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            tc.isDarkMode.value ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                            color: tc.textColor,
-                            size: 20.sp,
-                          ),
-                          SizedBox(width: 12.w),
-                          Text(
-                            "Dark Mode / Light Mode",
-                            style: TextStyle(color: tc.textColor, fontSize: 13.sp, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      Switch(
-                        value: tc.isDarkMode.value,
-                        activeColor: AppColors.c053A4CA,
-                        onChanged: (val) {
-                          tc.toggleTheme();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
+
 
                 // Premium Info Display Section (Data bound to API / ProfileProvider)
                 _buildPremiumInfoTile(
@@ -462,7 +427,7 @@ class _ProfileTabState extends State<ProfileTab> {
                 SizedBox(height: 12.h),
                 GestureDetector(
                   onTap: () async {
-                    await postLogoutRX.logOut();
+                    await postLogoutRX.logOut(isSeller: true);
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -759,7 +724,7 @@ class _ProfileTabState extends State<ProfileTab> {
                                         colorText: Colors.white,
                                         backgroundColor: Colors.redAccent.withOpacity(0.9),
                                       );
-                                      await postLogoutRX.logOut();
+                                      await postLogoutRX.logOut(isSeller: true);
                                     }
                                   }
                                 },

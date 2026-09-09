@@ -15,6 +15,9 @@ import 'package:bd_shope_combined/features/buyer/auth/create_password_screen/cre
 // Seller screens
 import 'package:bd_shope_combined/features/seller/auth/login/presentation/login_screen.dart' as seller_login;
 import 'package:bd_shope_combined/features/seller/auth/register/presentation/register_screen.dart' as seller_register;
+import 'package:bd_shope_combined/features/seller/auth/otp/presentation/otp_screen.dart' as seller_otp;
+import 'package:bd_shope_combined/features/seller/auth/forgot_password/presentation/forgot_password_screen.dart' as seller_forgot_password;
+import 'package:bd_shope_combined/features/seller/auth/create_password/presentation/create_password_screen.dart' as seller_create_password;
 import 'package:bd_shope_combined/features/seller/home/presentation/home_screen.dart' as seller_home;
 
 // Buyer screens
@@ -56,6 +59,9 @@ class AppPages {
     // Seller Auth routes
     GetPage(name: Routes.SELLER_LOGIN, page: () => const seller_login.LoginScreen()),
     GetPage(name: Routes.SELLER_REGISTER, page: () => const seller_register.RegisterScreen()),
+    GetPage(name: Routes.SELLER_OTP, page: () => const seller_otp.OtpScreen()),
+    GetPage(name: Routes.SELLER_FORGOT_PASSWORD, page: () => const seller_forgot_password.ForgotPasswordScreen()),
+    GetPage(name: Routes.SELLER_CREATE_PASSWORD, page: () => const seller_create_password.CreatePasswordScreen()),
     GetPage(name: Routes.SELLER_HOME, page: () => const seller_home.HomeScreen()),
     // Buyer routes
     GetPage(name: Routes.BUYER_HOME, page: () => const BuyerHomeScreen()),

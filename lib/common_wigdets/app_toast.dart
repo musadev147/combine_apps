@@ -44,6 +44,8 @@ class AppToast {
             Expanded(
               child: Text(
                 message,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
                   fontWeight: FontWeight.w600,

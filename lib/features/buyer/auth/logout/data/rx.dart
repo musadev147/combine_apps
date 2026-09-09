@@ -42,7 +42,10 @@ class PostLogoutRx extends RxResponseInt<Map<String, dynamic>> {
 
   ValueStream<Map<String, dynamic>> get valueStreamData => dataFetcher.stream;
 
-  Future<bool> logOut() async {
+  bool _isSeller = false;
+
+  Future<bool> logOut({bool isSeller = false}) async {
+    _isSeller = isSeller;
     try {
       await EasyLoading.show(status: "Logging out...");
       final data = await api.logout();
@@ -82,7 +85,11 @@ class PostLogoutRx extends RxResponseInt<Map<String, dynamic>> {
       Get.delete<CallController>();
     }
 
-    Get.offAllNamed(Routes.LOGIN);
+    if (_isSeller) {
+      Get.offAllNamed(Routes.SELLER_LOGIN);
+    } else {
+      Get.offAllNamed(Routes.LOGIN);
+    }
     return true;
   }
 
@@ -112,7 +119,11 @@ class PostLogoutRx extends RxResponseInt<Map<String, dynamic>> {
       Get.delete<CallController>();
     }
 
-    Get.offAllNamed(Routes.LOGIN);
+    if (_isSeller) {
+      Get.offAllNamed(Routes.SELLER_LOGIN);
+    } else {
+      Get.offAllNamed(Routes.LOGIN);
+    }
     return true;
   }
 }

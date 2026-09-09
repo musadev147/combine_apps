@@ -19,6 +19,8 @@ class CreatePasswordScreen extends StatefulWidget {
 class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   late String email;
   late String otp;
@@ -70,7 +72,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     );
 
     if (success) {
-      Get.offAllNamed(Routes.LOGIN);
+      Get.offAllNamed(Routes.SELLER_LOGIN);
     }
   }
 
@@ -115,7 +117,19 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                       label: "New Password",
                       icon: Icons.lock_outline_rounded,
                       hint: "••••••••",
-                      obscureText: true,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: tc.iconColor,
+                          size: 18.sp,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                     ),
                     SizedBox(height: 14.h),
 
@@ -125,7 +139,19 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                       label: "Confirm New Password",
                       icon: Icons.lock_outline_rounded,
                       hint: "••••••••",
-                      obscureText: true,
+                      obscureText: _obscureConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                          color: tc.iconColor,
+                          size: 18.sp,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
                     ),
                     SizedBox(height: 24.h),
 
@@ -174,6 +200,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     required IconData icon,
     required String hint,
     bool obscureText = false,
+    Widget? suffixIcon,
   }) {
     final tc = Get.find<ThemeController>();
     return Column(
@@ -204,6 +231,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 color: tc.iconColor,
                 size: 18.sp,
               ),
+              suffixIcon: suffixIcon,
               hintText: hint,
               hintStyle: TextStyle(
                 color: tc.inputHintColor,

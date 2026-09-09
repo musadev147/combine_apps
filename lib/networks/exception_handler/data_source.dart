@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -122,9 +123,37 @@ final class ErrorHandler implements Exception {
               }
             } else if (responseData['message'] != null) {
               errorMessage = responseData['message'].toString();
+            } else if (responseData['detail'] != null) {
+              errorMessage = responseData['detail'].toString();
             }
           } else if (responseData is String) {
-            errorMessage = responseData.isNotEmpty ? responseData : errorMessage;
+            try {
+              final parsed = jsonDecode(responseData);
+              if (parsed is Map<String, dynamic>) {
+                if (parsed['message'] != null) {
+                  errorMessage = parsed['message'].toString();
+                } else if (parsed['detail'] != null) {
+                  errorMessage = parsed['detail'].toString();
+                } else if (parsed['errors'] != null) {
+                  errorMessage = parsed['errors'].toString();
+                } else {
+                  errorMessage = responseData.isNotEmpty ? responseData : errorMessage;
+                }
+              } else {
+                errorMessage = responseData.isNotEmpty ? responseData : errorMessage;
+              }
+            } catch (e) {
+              final trimmed = responseData.trim();
+              if (trimmed.startsWith('<!DOCTYPE html>') || trimmed.startsWith('<html') || trimmed.startsWith('<body') || trimmed.contains('<head>')) {
+                errorMessage = "Server returned an error (${error.response?.statusCode}: ${error.response?.statusMessage ?? 'Unknown Error'})";
+              } else {
+                errorMessage = trimmed.isNotEmpty ? trimmed : errorMessage;
+              }
+            }
+          }
+          
+          if (errorMessage.isEmpty || errorMessage.contains("This exception was thrown because")) {
+            errorMessage = error.response?.statusMessage ?? "Bad Request";
           }
 
           return Failure(error.response?.statusCode ?? 0, errorMessage);

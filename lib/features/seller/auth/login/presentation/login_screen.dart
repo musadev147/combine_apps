@@ -129,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
-                        onPressed: () => Get.toNamed(Routes.FORGOT_PASSWORD),
+                        onPressed: () => Get.toNamed(Routes.SELLER_FORGOT_PASSWORD),
                         child: Text(
                           "Forgot Password?",
                           style: TextStyle(

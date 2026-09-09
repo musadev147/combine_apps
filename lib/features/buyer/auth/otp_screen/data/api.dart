@@ -23,7 +23,7 @@ class PostVerifyOtpApi {
       
       return (response.data as Map<String, dynamic>?) ?? {};
     } catch (error) {
-      log('VERIFY OTP API ERROR: $error');
+      log('VERIFY OTP API ERROR');
       rethrow;
     }
   }

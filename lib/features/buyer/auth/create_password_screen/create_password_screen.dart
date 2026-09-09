@@ -53,24 +53,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
       );
 
       if (success) {
-        Get.defaultDialog(
-          title: 'Success!',
-          titleStyle: GoogleFonts.outfit(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontWeight: FontWeight.bold),
-          middleText: 'Your password has been successfully reset. Please log in again.',
-          middleTextStyle: GoogleFonts.poppins(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8)),
-          backgroundColor: const Color(0xFF1E1E38),
-          radius: 20.r,
-          barrierDismissible: false,
-          confirm: TextButton(
-            onPressed: () {
-              Get.offAllNamed(Routes.LOGIN);
-            },
-            child: Text(
-              'OK',
-              style: TextStyle(color: const Color(0xFF53A4CA), fontSize: 16.sp, fontWeight: FontWeight.bold),
-            ),
-          ),
-        );
+        Get.offAllNamed(Routes.LOGIN);
       }
     }
   }

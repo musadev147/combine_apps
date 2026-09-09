@@ -14,6 +14,9 @@ abstract class Routes {
   static const SELLER_LOGIN = '/seller_login';
   static const SELLER_REGISTER = '/seller_register';
   static const SELLER_HOME = '/seller_home';
+  static const SELLER_OTP = '/seller_otp';
+  static const SELLER_FORGOT_PASSWORD = '/seller_forgot_password';
+  static const SELLER_CREATE_PASSWORD = '/seller_create_password';
   
   static const CREATE_PASSWORD = '/create_password';
   static const BUYER_HOME = '/buyer_home';

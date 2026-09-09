@@ -40,15 +40,21 @@ class PostVerifyOtpRx extends RxResponseInt<Map<String, dynamic>> {
       _isFromForgot = isFromForgot;
       _lastEmail = email;
       _lastOtp = otp;
+      if (isFromForgot) {
+        // Backend does not have a standalone endpoint to verify the forgot-password OTP.
+        // It validates the OTP only during the final reset-password step.
+        // So we bypass the API call here and proceed directly to the Create Password screen.
+        return await handleSuccessWithReturn({});
+      }
+
       await EasyLoading.show(status: 'Verifying OTP...');
-      final data = isFromForgot
-          ? await api.verifyResetOtp(email: email, otp: otp)
-          : await api.verifyOtp(email: email, otp: otp);
+      final data = await api.verifyOtp(email: email, otp: otp);
       await EasyLoading.dismiss();
       return await handleSuccessWithReturn(data);
     } catch (error) {
       await EasyLoading.dismiss();
-      log('Verify OTP error: $error');
+      final parsedError = ErrorHandler.handle(error).failure.responseMessage;
+      log('Verify OTP error: $parsedError');
       return await handleErrorWithReturn(error);
     }
   }

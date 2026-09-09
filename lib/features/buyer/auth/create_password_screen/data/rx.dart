@@ -38,7 +38,8 @@ class PostResetPasswordRx extends RxResponseInt<PostResetPasswordModel> {
       return await handleSuccessWithReturn(data);
     } catch (error) {
       await EasyLoading.dismiss();
-      log('ResetPassword Rx error: $error');
+      final parsedError = ErrorHandler.handle(error).failure.responseMessage;
+      log('ResetPassword Rx error: $parsedError');
       return await handleErrorWithReturn(error);
     }
   }

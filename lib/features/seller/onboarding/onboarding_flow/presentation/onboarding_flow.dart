@@ -39,7 +39,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _finishOnboarding() {
     appData.write('has_completed_onboarding', true);
-    Get.offAllNamed(Routes.LOGIN);
+    Get.offAllNamed(Routes.SELLER_LOGIN);
   }
 
   @override

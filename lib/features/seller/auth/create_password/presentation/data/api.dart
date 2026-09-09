@@ -22,8 +22,8 @@ class PostResetPasswordApi {
       final data = {
         'email': email,
         'otp': otp,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
+        'new_password': password,
+        'confirm_password': passwordConfirmation,
       };
 
       final response = await postHttp(Endpoints.forgotNewPassword(), data);
@@ -34,7 +34,7 @@ class PostResetPasswordApi {
         throw DataSource.DEFAULT.getFailure();
       }
     } catch (error) {
-      log('RESET PASSWORD API ERROR: $error');
+      log('RESET PASSWORD API ERROR');
       rethrow;
     }
   }

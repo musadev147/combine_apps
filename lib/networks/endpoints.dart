@@ -21,7 +21,7 @@ final class Endpoints {
   static String register() => "/auth/register";
   static String lookupRoles() => "/lookup/roles";
   static String signIn() => "/auth/login";
-  static String otpVerify() => "/auth/verify-email";
+  static String otpVerify() => "/auth/verify-otp";
   static String verifyOtp() => "/auth/verify-otp";
   static String login() => "/login";
   static String profile() => "/profile";
