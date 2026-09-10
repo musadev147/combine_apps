@@ -164,7 +164,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           style: GoogleFonts.outfit(
                             fontSize: 38.sp,
                             fontWeight: FontWeight.w900,
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.white,
                             letterSpacing: 2.0,
                             shadows: [
                               Shadow(

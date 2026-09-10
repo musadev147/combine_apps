@@ -9,8 +9,11 @@ class GetAllInvoiceModel {
   String? price;
   int? quantity;
   String? deliveryCharge;
+  String? serviceCharge;
+  String? packingCharge;
   String? note;
   bool? isProcessed;
+  bool? isUnpromised;
   String? createdAt;
   String? updatedAt;
 
@@ -25,8 +28,11 @@ class GetAllInvoiceModel {
       this.price,
       this.quantity,
       this.deliveryCharge,
+      this.serviceCharge,
+      this.packingCharge,
       this.note,
       this.isProcessed,
+      this.isUnpromised,
       this.createdAt,
       this.updatedAt});
 
@@ -34,15 +40,26 @@ class GetAllInvoiceModel {
     id = json['id'];
     session = json['session'];
     channelName = json['channel_name'];
-    buyer = json['buyer'];
-    vendor = json['vendor'];
-    tag = json['tag'];
-    productName = json['product_name'];
-    price = json['price'];
+    if (json['buyer'] is Map) {
+      buyer = json['buyer']['id']?.toString();
+    } else {
+      buyer = json['buyer']?.toString();
+    }
+    vendor = json['vendor']?.toString();
+    if (json['tag'] is Map) {
+      tag = json['tag']['id']?.toString();
+    } else {
+      tag = json['tag']?.toString();
+    }
+    productName = json['product_name']?.toString();
+    price = json['price']?.toString();
     quantity = json['quantity'];
-    deliveryCharge = json['delivery_charge'];
-    note = json['note'];
+    deliveryCharge = json['delivery_charge']?.toString();
+    serviceCharge = json['service_charge']?.toString();
+    packingCharge = json['packing_charge']?.toString();
+    note = json['note']?.toString();
     isProcessed = json['is_processed'];
+    isUnpromised = json['is_unpromised'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
   }
@@ -59,10 +76,14 @@ class GetAllInvoiceModel {
     data['price'] = this.price;
     data['quantity'] = this.quantity;
     data['delivery_charge'] = this.deliveryCharge;
+    data['service_charge'] = this.serviceCharge;
+    data['packing_charge'] = this.packingCharge;
     data['note'] = this.note;
     data['is_processed'] = this.isProcessed;
+    data['is_unpromised'] = this.isUnpromised;
     data['created_at'] = this.createdAt;
     data['updated_at'] = this.updatedAt;
     return data;
   }
 }
+

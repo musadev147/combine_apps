@@ -37,6 +37,8 @@ class CallController extends GetxController {
   Timer? _callTimer;
   OverlayEntry? _overlayEntry;
 
+  bool _hasRemoteUserJoined = false;
+
   @override
   void onInit() {
     super.onInit();
@@ -49,9 +51,12 @@ class CallController extends GetxController {
       _updateFloatingBubbleState();
     });
 
-    // Watch Agora remote UID to auto-end call if buyer skips/drops
+    // Watch Agora remote UID to auto-end call if buyer skips/drops AFTER having joined
     ever(Get.find<AgoraService>().remoteUid, (uid) {
-      if (uid == null && callState.value == CallState.connected) {
+      if (uid != null) {
+        _hasRemoteUserJoined = true;
+      } else if (_hasRemoteUserJoined && callState.value == CallState.connected) {
+        _hasRemoteUserJoined = false;
         log(
           'CallController: Remote user dropped (buyer skipped). Ending call.',
         );
@@ -271,16 +276,16 @@ class CallController extends GetxController {
             currentCallId.value.isEmpty ||
             callId.isEmpty) {
           _stopRingtone();
-          if (acceptedBy == currentSellerId && currentSellerId.isNotEmpty) {
+          if (acceptedBy.isNotEmpty && acceptedBy != currentSellerId) {
+            // Other seller accepted the call first, stop ringing
+            callState.value = CallState.ended;
+            _cleanupAndGoBack();
+          } else {
             // We successfully accepted the call first
             callState.value = CallState.connected;
             startCallTimer();
             // Transition to active call session screen
             _navigateToCallScreen();
-          } else {
-            // Other seller accepted the call first, stop ringing
-            callState.value = CallState.ended;
-            _cleanupAndGoBack();
           }
         }
         break;
@@ -393,6 +398,8 @@ class CallController extends GetxController {
   }
 
   void _navigateToCallScreen() {
+    isCallScreenVisible.value = true;
+    
     final currentRoute = Get.currentRoute;
     if (currentRoute == 'IncomingCallScreen' ||
         currentRoute == '/IncomingCallScreen') {
@@ -435,6 +442,7 @@ class CallController extends GetxController {
   }
 
   void _cleanupAndGoBack() {
+    _hasRemoteUserJoined = false;
     _stopRingtone();
     stopCallTimer();
     AgoraService.to.leaveCallChannel();
@@ -480,6 +488,9 @@ class CallController extends GetxController {
       callTimerString.value = '$minutes:$seconds';
     });
 
+    // Show persistent ongoing call notification
+    NotificationService.instance.showOngoingCallNotification(currentCustomerId.value);
+
     // Start polling for new short notes during call
     _lastShortNoteId = null;
     ShortNoteApi.instance
@@ -518,6 +529,7 @@ class CallController extends GetxController {
   }
 
   void stopCallTimer() {
+    NotificationService.instance.cancelOngoingCallNotification();
     _callTimer?.cancel();
     _callTimer = null;
     callTimerSeconds.value = 0;

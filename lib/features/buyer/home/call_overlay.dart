@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:bd_shope_combined/controllers/connection_controller.dart';
 
+import '../../../route/app_routes.dart';
+
 class CallOverlayWidget extends StatefulWidget {
   const CallOverlayWidget({Key? key}) : super(key: key);
 
@@ -41,6 +43,15 @@ class _CallOverlayWidgetState extends State<CallOverlayWidget> with SingleTicker
         return SizedBox.shrink();
       }
 
+      if (state == 'connected') {
+        return Positioned(
+          top: MediaQuery.of(context).padding.top + 8.h,
+          left: 16.w,
+          right: 16.w,
+          child: _buildActiveCallFloatingBar(),
+        );
+      }
+
       return Positioned.fill(
         child: ClipRRect(
           child: BackdropFilter(
@@ -66,6 +77,97 @@ class _CallOverlayWidgetState extends State<CallOverlayWidget> with SingleTicker
         ),
       );
     });
+  }
+
+  Widget _buildActiveCallFloatingBar() {
+    final otherUser = _controller.connectedSeller.value;
+    final name = otherUser?.name ?? 'Seller';
+    return GestureDetector(
+      onTap: () {
+        if (Get.currentRoute != Routes.CALL) {
+          Get.toNamed(Routes.CALL);
+        }
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF2E8B57).withOpacity(0.85),
+                  const Color(0xFF3CB371).withOpacity(0.85),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().dividerColor
+                    : Colors.black12.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10.r,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.phone_in_talk,
+                  color: Get.isRegistered<ThemeController>()
+                      ? Get.find<ThemeController>().textColor
+                      : Colors.black,
+                  size: 18.sp,
+                ),
+                SizedBox(width: 10.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Active Call - Tap to return",
+                        style: TextStyle(
+                          color: Get.isRegistered<ThemeController>()
+                              ? Get.find<ThemeController>().textColor
+                              : Colors.black,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        "Connected with: $name",
+                        style: TextStyle(
+                          color: Get.isRegistered<ThemeController>()
+                              ? Get.find<ThemeController>().textColor
+                              : Colors.black.withOpacity(0.8),
+                          fontSize: 11.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Get.isRegistered<ThemeController>()
+                      ? Get.find<ThemeController>().textColor
+                      : Colors.black,
+                  size: 14.sp,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildCallUI(String state) {
@@ -408,23 +510,35 @@ class _CallOverlayWidgetState extends State<CallOverlayWidget> with SingleTicker
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Network indicator
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.signal_cellular_alt, color: Colors.greenAccent, size: 14.r),
-                  SizedBox(width: 6.w),
-                  Obx(() => Text(
-                    '${_controller.networkStatus.value} (12ms)',
-                    style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8), fontSize: 11.sp),
-                  )),
-                ],
-              ),
+            // Minimize & Network
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 30),
+                  onPressed: () {
+                    _controller.isCallMinimized.value = true;
+                  },
+                ),
+                SizedBox(width: 4.w),
+                // Network indicator
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  decoration: BoxDecoration(
+                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.signal_cellular_alt, color: Colors.greenAccent, size: 14.r),
+                      SizedBox(width: 6.w),
+                      Obx(() => Text(
+                        '${_controller.networkStatus.value} (12ms)',
+                        style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8), fontSize: 11.sp),
+                      )),
+                    ],
+                  ),
+                ),
+              ],
             ),
             
             // Timer Badge

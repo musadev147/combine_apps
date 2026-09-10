@@ -15,6 +15,8 @@ import 'package:bd_shope_combined/features/buyer/coustomer/serach/presentation/i
 import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/constants/app_constants.dart';
 
+import '../features/seller/call/presentation/data/call_controller.dart';
+
 
 class EcommerceProduct {
   final String id;
@@ -184,6 +186,7 @@ class ConnectionController extends GetxController {
   var isCameraOff = false.obs;
   var callTimerString = '00:00'.obs;
   var networkStatus = 'Excellent'.obs;
+  var isCallMinimized = false.obs;
 
   // Connection context for buyer calls
   var callingTagOrProduct = ''.obs;
@@ -223,7 +226,7 @@ class ConnectionController extends GetxController {
     
     // If we are a seller, DO NOT process call events here!
     // Seller has CallController for this. We only process new_invoice.
-    if (currentRole.value == 'seller' && type != 'new_invoice') {
+    if ((currentRole.value == 'seller' || Get.isRegistered<CallController>()) && type != 'new_invoice') {
       return;
     }
 
@@ -282,6 +285,7 @@ class ConnectionController extends GetxController {
       }
 
       callState.value = 'connected';
+      NotificationService.instance.showOngoingCallNotification(connectedSeller.value?.name ?? 'Seller');
       
       // Start call timer
       callTimerSeconds.value = 0;
@@ -1139,6 +1143,7 @@ class ConnectionController extends GetxController {
     sellers.refresh();
 
     callState.value = 'connected';
+    NotificationService.instance.showOngoingCallNotification(seller.name);
     callTimerSeconds.value = 0;
     isMuted.value = false;
     isSpeakerOn.value = false;
@@ -1403,6 +1408,7 @@ class ConnectionController extends GetxController {
   }
 
   void rejectCurrentVendor() {
+    NotificationService.instance.cancelOngoingCallNotification();
     _callTimer?.cancel();
     Get.find<AgoraService>().leaveCallChannel();
     final vendorId = connectedSeller.value?.id;
@@ -1429,6 +1435,7 @@ class ConnectionController extends GetxController {
   }
 
   void endCall() {
+    NotificationService.instance.cancelOngoingCallNotification();
     _callTimer?.cancel();
     _simulationTimer?.cancel();
 
@@ -1468,6 +1475,7 @@ class ConnectionController extends GetxController {
   }
 
   void cancelCall() {
+    NotificationService.instance.cancelOngoingCallNotification();
     _simulationTimer?.cancel();
     _callTimer?.cancel();
     

@@ -21,6 +21,7 @@ import 'constants/custom_theme.dart';
 
 import 'services/web_socket_service.dart';
 import 'services/agora_service.dart';
+import 'services/token_refresh_service.dart';
 import 'controllers/connection_controller.dart';
 import 'controllers/theme_controller.dart';
 
@@ -45,6 +46,7 @@ void main() async {
     try {
       await DioSingleton.instance.create();
       await NotificationService.instance.init();
+      Get.put(TokenRefreshService(), permanent: true).startTimer();
     } catch (_) {}
   });
 }

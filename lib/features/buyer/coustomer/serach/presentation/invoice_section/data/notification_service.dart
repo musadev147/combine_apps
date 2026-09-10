@@ -13,6 +13,10 @@ import 'package:bd_shope_combined/constants/app_constants.dart';
 import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/route/app_pages.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:bd_shope_combined/features/seller/call/presentation/call_screen.dart' as seller_call;
+import 'package:bd_shope_combined/features/buyer/coustomer/call/call_screen.dart' as buyer_call;
+import 'package:bd_shope_combined/features/seller/call/presentation/data/call_controller.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
 
 final FlutterLocalNotificationsPlugin _bgLocalNotifications = FlutterLocalNotificationsPlugin();
 
@@ -162,6 +166,32 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         log("Notification clicked: ${response.payload}");
+        
+        if (response.payload == 'ongoing_call') {
+          String role = 'buyer';
+          if (Get.isRegistered<ConnectionController>()) {
+            role = Get.find<ConnectionController>().currentRole.value;
+          }
+
+          if (role == 'seller' && Get.isRegistered<CallController>()) {
+            final callController = Get.find<CallController>();
+            if (callController.callState.value == CallState.connected) {
+              if (Get.currentRoute != 'CallScreen' && Get.currentRoute != '/CallScreen') {
+                Get.to(() => const seller_call.CallScreen(), routeName: 'CallScreen');
+              }
+              callController.isCallScreenVisible.value = true;
+            }
+          } else if (role == 'buyer' && Get.isRegistered<ConnectionController>()) {
+            final connController = Get.find<ConnectionController>();
+            if (connController.callState.value == 'connected') {
+              if (Get.currentRoute != Routes.CALL) {
+                Get.toNamed(Routes.CALL) ?? Get.to(() => const buyer_call.CallScreen(), routeName: Routes.CALL);
+              }
+            }
+          }
+          return;
+        }
+
         if (response.payload != null && response.payload!.isNotEmpty) {
           Get.toNamed<dynamic>(
             Routes.INVOICE_DETAILS,
@@ -228,6 +258,35 @@ class NotificationService {
     } catch (e) {
       log("Error showing local notification: $e");
     }
+  }
+
+  void showOngoingCallNotification(String customerName) {
+    const int ongoingCallNotificationId = 999999;
+    _localNotifications.show(
+      ongoingCallNotificationId,
+      'Ongoing Call',
+      'Tap to return to call with $customerName',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'damadami_ongoing_call',
+          'Ongoing Call',
+          channelDescription: 'Ongoing call notification',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: false,
+        ),
+      ),
+      payload: 'ongoing_call',
+    );
+  }
+
+  void cancelOngoingCallNotification() {
+    _localNotifications.cancel(999999);
   }
 
   Future<void> registerToken() async {

@@ -1,4 +1,5 @@
 import 'package:bd_shope_combined/controllers/theme_controller.dart';
+import 'package:bd_shope_combined/controllers/connection_controller.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'dart:ui';
@@ -67,6 +68,10 @@ class _CallScreenState extends State<CallScreen> {
       final callCtrl = Get.find<CallController>();
       _buyerName = callCtrl.currentCustomerId.value.isNotEmpty ? callCtrl.currentCustomerId.value : 'Customer';
       _buyerId = callCtrl.currentCallId.value.isNotEmpty ? callCtrl.currentCallId.value : 'CALL-WS';
+    } else if (Get.isRegistered<ConnectionController>()) {
+      final connCtrl = Get.find<ConnectionController>();
+      _buyerName = connCtrl.connectedSeller.value?.name ?? 'Seller';
+      _buyerId = connCtrl.currentSessionId.value.isNotEmpty ? connCtrl.currentSessionId.value : 'CALL-WS';
     } else {
       _buyerName = 'Rahat Islam';
       _buyerId = 'BYR-0981';
@@ -191,24 +196,22 @@ class _CallScreenState extends State<CallScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: Colors.transparent,
-      body: Obx(() {
-        final remoteUidVal = agoraService.remoteUid.value;
-        final showLocalCamera = !_isCameraOff;
-        final hasRemoteVideo = remoteUidVal != null;
-
-        return Stack(
-          children: [
+      body: Stack(
+        children: [
             // Remote Video (Full Screen Background)
             Positioned.fill(
-              child: hasRemoteVideo
-                  ? AgoraVideoView(
-                      controller: VideoViewController.remote(
-                        rtcEngine: agoraService.engine!,
-                        canvas: VideoCanvas(uid: remoteUidVal),
-                        connection: RtcConnection(channelId: agoraService.currentChannelId),
-                      ),
-                    )
-                  : Container(
+              child: Obx(() {
+                final remoteUidVal = agoraService.remoteUid.value;
+                final hasRemoteVideo = remoteUidVal != null;
+                return hasRemoteVideo
+                    ? AgoraVideoView(
+                        controller: VideoViewController.remote(
+                          rtcEngine: agoraService.engine!,
+                          canvas: VideoCanvas(uid: remoteUidVal),
+                          connection: RtcConnection(channelId: agoraService.currentChannelId),
+                        ),
+                      )
+                    : Container(
                       color: const Color(0xFF141424), // Dark Messenger style background
                       child: Center(
                         child: Column(
@@ -228,53 +231,66 @@ class _CallScreenState extends State<CallScreen> {
                                   )
                                 ],
                               ),
-                              child: Obx(() {
-                                final imgUrl = Get.isRegistered<CallController>()
-                                    ? Get.find<CallController>().currentCustomerImage.value
-                                    : '';
-                                if (imgUrl.isNotEmpty) {
-                                  if (imgUrl.startsWith('http')) {
-                                    return CircleAvatar(
+                              child: Get.isRegistered<CallController>()
+                                  ? Obx(() {
+                                      final imgUrl = Get.find<CallController>().currentCustomerImage.value;
+                                      if (imgUrl.isNotEmpty) {
+                                        if (imgUrl.startsWith('http')) {
+                                          return CircleAvatar(
+                                            radius: 60.r,
+                                            backgroundImage: NetworkImage(imgUrl),
+                                            backgroundColor: Colors.black12,
+                                          );
+                                        } else {
+                                          return CircleAvatar(
+                                            radius: 60.r,
+                                            backgroundImage: AssetImage(imgUrl),
+                                            backgroundColor: Colors.black12,
+                                          );
+                                        }
+                                      }
+                                      return CircleAvatar(
+                                        radius: 60.r,
+                                        backgroundColor: Colors.white24,
+                                        child: Icon(Icons.person, size: 60.sp, color: Colors.white),
+                                      );
+                                    })
+                                  : CircleAvatar(
                                       radius: 60.r,
-                                      backgroundImage: NetworkImage(imgUrl),
-                                      backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12,
-                                    );
-                                  } else {
-                                    return CircleAvatar(
-                                      radius: 60.r,
-                                      backgroundImage: AssetImage(imgUrl),
-                                      backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12,
-                                    );
-                                  }
-                                }
-                                return CircleAvatar(
-                                  radius: 60.r,
-                                  backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12,
-                                  child: Icon(Icons.person, size: 60.sp, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black),
-                                );
-                              }),
+                                      backgroundColor: Colors.white24,
+                                      child: Icon(Icons.person, size: 60.sp, color: Colors.white),
+                                    ),
                             ),
                             SizedBox(height: 24.h),
                             Text(
                               _buyerName,
                               style: GoogleFonts.poppins(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                color: Colors.white,
                                 fontSize: 22.sp,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             SizedBox(height: 6.h),
-                            Obx(() => Text(
-                              "Connected • ${Get.find<CallController>().callTimerString.value}",
-                              style: GoogleFonts.poppins(
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6),
-                                fontSize: 14.sp,
-                              ),
-                            )),
+                            Get.isRegistered<CallController>()
+                                ? Obx(() => Text(
+                                      "Connected • ${Get.find<CallController>().callTimerString.value}",
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white.withOpacity(0.8),
+                                        fontSize: 14.sp,
+                                      ),
+                                    ))
+                                : Text(
+                                      "Connected • 00:00",
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white.withOpacity(0.8),
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
                           ],
                         ),
                       ),
-                    ),
+                    );
+              }),
             ),
 
             // Top Info Bar & Minimization (Messenger Style)
@@ -290,7 +306,7 @@ class _CallScreenState extends State<CallScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.keyboard_arrow_down, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, size: 30),
+                            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 30),
                             onPressed: () => Get.back(),
                           ),
                           Column(
@@ -299,21 +315,39 @@ class _CallScreenState extends State<CallScreen> {
                               Text(
                                 _buyerName,
                                 style: GoogleFonts.poppins(
-                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                  color: Colors.white,
                                   fontSize: 16.sp,
                                   fontWeight: FontWeight.w600,
                                   shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
                                 ),
                               ),
                               SizedBox(height: 2.h),
-                              Obx(() => Text(
-                                Get.find<CallController>().callTimerString.value,
-                                style: GoogleFonts.poppins(
-                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8),
-                                  fontSize: 13.sp,
-                                  shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
-                                ),
-                              )),
+                              Get.isRegistered<CallController>()
+                                  ? Obx(() => Text(
+                                        Get.find<CallController>().callTimerString.value,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white.withOpacity(0.9),
+                                          fontSize: 13.sp,
+                                          shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
+                                        ),
+                                      ))
+                                  : Get.isRegistered<ConnectionController>()
+                                      ? Obx(() => Text(
+                                            Get.find<ConnectionController>().callTimerString.value,
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.white.withOpacity(0.9),
+                                              fontSize: 13.sp,
+                                              shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
+                                            ),
+                                          ))
+                                      : Text(
+                                            '00:00',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.white.withOpacity(0.9),
+                                              fontSize: 13.sp,
+                                              shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
+                                            ),
+                                          ),
                             ],
                           ),
                           SizedBox(width: 48.w), // Spacer to balance back button
@@ -326,7 +360,7 @@ class _CallScreenState extends State<CallScreen> {
             ),
 
             // Local Camera Preview (Picture-in-picture overlay)
-            if (showLocalCamera && agoraService.engine != null)
+            if (!_isCameraOff && agoraService.engine != null)
               Positioned(
                 top: 100.h,
                 right: 16.w,
@@ -407,6 +441,9 @@ class _CallScreenState extends State<CallScreen> {
                             onTap: () {
                               if (Get.isRegistered<CallController>()) {
                                 Get.find<CallController>().endCall();
+                              } else if (Get.isRegistered<ConnectionController>()) {
+                                Get.find<ConnectionController>().endCall();
+                                Get.back(result: {'callEnded': true});
                               } else {
                                 Get.back(result: {
                                   'callEnded': true,
@@ -428,9 +465,9 @@ class _CallScreenState extends State<CallScreen> {
                                   )
                                 ],
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.call_end_rounded,
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                color: Colors.white,
                                 size: 28,
                               ),
                             ),
@@ -442,9 +479,8 @@ class _CallScreenState extends State<CallScreen> {
                 ),
               ),
           ],
-        );
-      }),
-    );
+        ),
+      );
   }
 
   Widget _buildMessengerIconButton({

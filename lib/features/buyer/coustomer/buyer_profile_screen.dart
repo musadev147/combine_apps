@@ -38,6 +38,10 @@ class BuyerProfileScreen extends StatelessWidget {
             child: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back_ios, color: Colors.black),
+                onPressed: () => Get.back(),
+              ),
               title: Text(
                 'My Profile',
                 style: GoogleFonts.outfit(

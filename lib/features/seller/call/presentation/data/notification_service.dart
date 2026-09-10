@@ -15,6 +15,8 @@ import 'package:bd_shope_combined/constants/app_constants.dart';
 import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/route/app_pages.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:bd_shope_combined/features/seller/call/presentation/call_screen.dart';
+import 'package:bd_shope_combined/features/seller/call/presentation/data/call_controller.dart';
 
 final FlutterLocalNotificationsPlugin _bgLocalNotifications = FlutterLocalNotificationsPlugin();
 
@@ -223,6 +225,19 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         log("Notification clicked: ${response.payload}");
+        if (response.payload == 'ongoing_call') {
+          if (Get.isRegistered<CallController>()) {
+            final callController = Get.find<CallController>();
+            if (callController.callState.value == CallState.connected) {
+              if (Get.currentRoute != 'CallScreen' && Get.currentRoute != '/CallScreen') {
+                Get.to(() => const CallScreen(), routeName: 'CallScreen');
+              }
+              callController.isCallScreenVisible.value = true;
+            }
+          }
+          return;
+        }
+
         if (response.payload != null && response.payload!.isNotEmpty) {
           Get.toNamed(
             '/payment-invoice', // Routes.PAYMENT_INVOICE
@@ -292,6 +307,35 @@ class NotificationService {
       snackPosition: SnackPosition.TOP,
       duration: const Duration(seconds: 4),
     );
+  }
+
+  void showOngoingCallNotification(String customerName) {
+    const int ongoingCallNotificationId = 999999;
+    _localNotifications.show(
+      ongoingCallNotificationId,
+      'Ongoing Call',
+      'Tap to return to call with $customerName',
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'damadami_ongoing_call',
+          'Ongoing Call',
+          channelDescription: 'Ongoing call notification',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: false,
+        ),
+      ),
+      payload: 'ongoing_call',
+    );
+  }
+
+  void cancelOngoingCallNotification() {
+    _localNotifications.cancel(999999);
   }
 
   Future<void> registerToken() async {

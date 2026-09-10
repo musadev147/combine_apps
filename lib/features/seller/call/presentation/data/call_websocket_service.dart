@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:bd_shope_combined/networks/endpoints.dart' as api;
+import 'package:bd_shope_combined/helpers/di.dart';
+import 'package:bd_shope_combined/constants/app_constants.dart';
 
 class CallWebSocketService {
   WebSocket? _webSocket;
@@ -38,7 +40,10 @@ class CallWebSocketService {
 
     final path = paths[(_connectionAttempt ~/ 2) % paths.length];
     final prefix = tokenPrefixes[_connectionAttempt % tokenPrefixes.length];
-    final formattedToken = Uri.encodeComponent('$prefix$token');
+    final latestToken = appData.read(kKeyAccessToken)?.toString() ?? token;
+    _cachedToken = latestToken; // Update cached token
+    
+    final formattedToken = Uri.encodeComponent('$prefix$latestToken');
 
     final connectionUrl = '$wsScheme://${uri.host}$portStr$path?token=$formattedToken';
     log('Connecting to WebSocket (Attempt #$_connectionAttempt): $connectionUrl');
@@ -47,7 +52,7 @@ class CallWebSocketService {
       _webSocket = await WebSocket.connect(
         connectionUrl,
         headers: {
-          'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $latestToken',
         },
       ).timeout(const Duration(seconds: 10));
       _isConnecting = false;
@@ -113,8 +118,9 @@ class CallWebSocketService {
       log('WebSocket reconnecting in 5 seconds...');
       _reconnectTimer?.cancel();
       _reconnectTimer = Timer(const Duration(seconds: 5), () {
-        if (_cachedToken != null) {
-          connect(_cachedToken!);
+        final latestToken = appData.read(kKeyAccessToken)?.toString() ?? _cachedToken;
+        if (latestToken != null) {
+          connect(latestToken);
         }
       });
     }

@@ -23,7 +23,7 @@ class NotificationsApi {
       }
     } catch (error) {
       log("FETCH NOTIFICATIONS API ERROR: $error");
-      rethrow;
+      return []; // Return empty list instead of crashing
     }
   }
 }

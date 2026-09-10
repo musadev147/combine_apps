@@ -38,6 +38,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   late TextEditingController _addressCtrl;
   late TextEditingController _deliveryChargeCtrl;
   late TextEditingController _serviceChargeCtrl;
+  late TextEditingController _packingChargeCtrl;
 
   double _subtotal = 0.0;
   double _total = 0.0;
@@ -56,18 +57,21 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _addressCtrl = TextEditingController(text: widget.initialLog?["note"] ?? "");
     _deliveryChargeCtrl = TextEditingController(text: widget.initialLog?["delivery"]?.toString() ?? "0.0");
     _serviceChargeCtrl = TextEditingController(text: widget.initialLog?["service_charge"]?.toString() ?? "0.0");
+    _packingChargeCtrl = TextEditingController(text: widget.initialLog?["packing_charge"]?.toString() ?? "0.0");
 
     _priceCtrl.addListener(_calculateTotals);
     _qtyCtrl.addListener(_calculateTotals);
     _deliveryChargeCtrl.addListener(_calculateTotals);
     _serviceChargeCtrl.addListener(_calculateTotals);
+    _packingChargeCtrl.addListener(_calculateTotals);
     
     final price = double.tryParse(_priceCtrl.text) ?? 0.0;
     final qty = double.tryParse(_qtyCtrl.text) ?? 0.0;
     final delivery = double.tryParse(_deliveryChargeCtrl.text) ?? 0.0;
     final serviceCharge = double.tryParse(_serviceChargeCtrl.text) ?? 0.0;
+    final packingCharge = double.tryParse(_packingChargeCtrl.text) ?? 0.0;
     _subtotal = price * qty;
-    _total = _subtotal + delivery + serviceCharge;
+    _total = _subtotal + delivery + serviceCharge + packingCharge;
 
     _fetchUsersList();
   }
@@ -205,6 +209,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _addressCtrl.dispose();
     _deliveryChargeCtrl.dispose();
     _serviceChargeCtrl.dispose();
+    _packingChargeCtrl.dispose();
     super.dispose();
   }
 
@@ -213,10 +218,11 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final qty = double.tryParse(_qtyCtrl.text) ?? 0.0;
     final delivery = double.tryParse(_deliveryChargeCtrl.text) ?? 0.0;
     final serviceCharge = double.tryParse(_serviceChargeCtrl.text) ?? 0.0;
+    final packingCharge = double.tryParse(_packingChargeCtrl.text) ?? 0.0;
 
     setState(() {
       _subtotal = price * qty;
-      _total = _subtotal + delivery + serviceCharge;
+      _total = _subtotal + delivery + serviceCharge + packingCharge;
     });
   }
 
@@ -462,6 +468,18 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           return null;
                         },
                       ),
+                      _buildTextField(
+                        controller: _packingChargeCtrl,
+                        labelText: "Packaging Charge (৳)",
+                        icon: Icons.inventory_2_outlined,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty && double.tryParse(value) == null) {
+                            return "Invalid packaging charge";
+                          }
+                          return null;
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -498,6 +516,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                         children: [
                           Text("Service Charge", style: TextStyle(color: tc.textSecondaryColor)),
                           Text("৳ ${(double.tryParse(_serviceChargeCtrl.text) ?? 0.0).toStringAsFixed(2)}", style: TextStyle(color: tc.textColor, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("Packaging Charge", style: TextStyle(color: tc.textSecondaryColor)),
+                          Text("৳ ${(double.tryParse(_packingChargeCtrl.text) ?? 0.0).toStringAsFixed(2)}", style: TextStyle(color: tc.textColor, fontWeight: FontWeight.w600)),
                         ],
                       ),
                       Padding(
@@ -542,9 +568,15 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
 
                          String buyer = _buyerIdCtrl.text.trim();
                          if (isShortNote) {
-                           buyer = widget.initialLog?["buyer"]?.toString() ?? '';
-                         } else if (!RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(buyer)) {
-                           buyer = _realBuyerUuid ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+                           if (widget.initialLog?["buyerId"] != null && widget.initialLog!["buyerId"].toString().isNotEmpty) {
+                             buyer = widget.initialLog!["buyerId"].toString();
+                           } else if (widget.initialLog?["buyer"] != null && RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(widget.initialLog!["buyer"].toString())) {
+                             buyer = widget.initialLog!["buyer"].toString();
+                           }
+                         }
+
+                         if (!RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(buyer)) {
+                           buyer = _realBuyerUuid ?? widget.initialLog?["buyerId"]?.toString() ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6";
                          }
                          final productName = _itemNameCtrl.text.trim();
                          final price = _priceCtrl.text.trim();
@@ -552,9 +584,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                          final note = _addressCtrl.text.trim();
                          final delivery = _deliveryChargeCtrl.text.trim();
                          final serviceCharge = _serviceChargeCtrl.text.trim();
+                         final packingCharge = _packingChargeCtrl.text.trim();
 
                          final buyerPhone = _selectedUser?['phone'] ?? _selectedUser?['phone_number'] ?? '';
-                         final double totalPriceVal = (double.tryParse(price) ?? 0.0) * quantity + (double.tryParse(delivery) ?? 0.0) + (double.tryParse(serviceCharge) ?? 0.0);
+                         final double totalPriceVal = (double.tryParse(price) ?? 0.0) * quantity + (double.tryParse(delivery) ?? 0.0) + (double.tryParse(serviceCharge) ?? 0.0) + (double.tryParse(packingCharge) ?? 0.0);
 
                          final invoiceModel = PostInvoiceModel(
                            buyer: buyer,
@@ -571,6 +604,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                            shortNote: isShortNote ? (widget.initialLog?["id"]?.toString()) : null,
                            deliveryCharge: delivery,
                            serviceCharge: serviceCharge,
+                           packingCharge: packingCharge,
                          );
 
                         final success = await InvoiceApi.instance.createInvoice(invoiceModel);

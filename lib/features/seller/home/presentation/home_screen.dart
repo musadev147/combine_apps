@@ -26,6 +26,7 @@ import 'package:bd_shope_combined/networks/api_acess.dart';
 import 'widgets/dashboard_tab.dart';
 import 'widgets/invoices_tab.dart';
 import 'widgets/short_notes_tab.dart';
+import 'widgets/promise_notes_tab.dart';
 import 'widgets/payments_tab.dart';
 import 'widgets/reports_tab.dart';
 import 'widgets/support_tab.dart';
@@ -48,8 +49,11 @@ class _HomeScreenState extends State<HomeScreen>
   int _homeTabClickCount = 0;
   int _invoiceTabClickCount = 0;
   int _notesTabClickCount = 0;
+  int _unpromiseTabClickCount = 0;
   int _paymentTabClickCount = 0;
   int _payoutTabClickCount = 0;
+  int _supportTabClickCount = 0;
+  int _profileTabClickCount = 0;
 
   // Messenger Call Notification State
   bool _showIncomingCallBanner = false;
@@ -706,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen>
                               onViewInvoices: () =>
                                   setState(() => _selectedIndex = 1),
                               onSupportCenter: () =>
-                                  setState(() => _selectedIndex = 5),
+                                  setState(() => _selectedIndex = 6),
                               pendingInvoicesCount: _invoicesList
                                   .where(
                                     (inv) =>
@@ -746,6 +750,13 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           Offstage(
                             offstage: _selectedIndex != 3,
+                            child: PromiseNotesTab(
+                              isPromise: false,
+                              refreshTrigger: _unpromiseTabClickCount,
+                            ),
+                          ),
+                          Offstage(
+                            offstage: _selectedIndex != 4,
                             child: PaymentsTab(
                               refreshTrigger: _paymentTabClickCount,
                               onPayoutRequested: () {
@@ -760,17 +771,17 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           Offstage(
-                            offstage: _selectedIndex != 4,
+                            offstage: _selectedIndex != 5,
                             child: PayoutTab(
                               refreshTrigger: _payoutTabClickCount,
                             ),
                           ),
                           Offstage(
-                            offstage: _selectedIndex != 5,
+                            offstage: _selectedIndex != 6,
                             child: const SupportTab(),
                           ),
                           Offstage(
-                            offstage: _selectedIndex != 6,
+                            offstage: _selectedIndex != 7,
                             child: ProfileTab(
                               storeNameController: _storeNameController,
                               storePhoneController: _storePhoneController,
@@ -854,7 +865,7 @@ class _HomeScreenState extends State<HomeScreen>
                   })
                 : SizedBox.shrink(),
           ),
-          if (_selectedIndex == 5)
+          if (_selectedIndex == 6)
             Positioned(
               bottom: 24.h,
               right: 24.w,
@@ -1071,24 +1082,20 @@ class _HomeScreenState extends State<HomeScreen>
       {'icon': Icons.space_dashboard_rounded, 'label': 'Home'},
       {'icon': Icons.receipt_long_rounded, 'label': 'Invoice'},
       {'icon': Icons.note_alt_rounded, 'label': 'Short Notes'},
+      {'icon': Icons.broken_image_rounded, 'label': 'Unpromise'},
       {'icon': Icons.account_balance_wallet_rounded, 'label': 'Payment'},
       {'icon': Icons.credit_card_rounded, 'label': 'Payout'},
       {'icon': Icons.support_agent_rounded, 'label': 'Support'},
       {'icon': Icons.person_rounded, 'label': 'Profile'},
     ];
 
-    return Container(
-      height: 65.h,
-      decoration: BoxDecoration(
-        color: tc.inputBackground,
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: tc.inputBorderColor),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+    return SizedBox(
+      height: 48.h,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: tabs.length,
         physics: const BouncingScrollPhysics(),
+        clipBehavior: Clip.none,
         itemBuilder: (context, index) {
           final isSelected = _selectedIndex == index;
           return GestureDetector(
@@ -1101,9 +1108,15 @@ class _HomeScreenState extends State<HomeScreen>
                 } else if (index == 2) {
                   _notesTabClickCount++;
                 } else if (index == 3) {
-                  _paymentTabClickCount++;
+                  _unpromiseTabClickCount++;
                 } else if (index == 4) {
+                  _paymentTabClickCount++;
+                } else if (index == 5) {
                   _payoutTabClickCount++;
+                } else if (index == 6) {
+                  _supportTabClickCount++;
+                } else if (index == 7) {
+                  _profileTabClickCount++;
                 }
                 _selectedIndex = index;
               });
@@ -1121,40 +1134,53 @@ class _HomeScreenState extends State<HomeScreen>
               }
             },
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              width: 78
-                  .w, // Slightly increased from 72.w to make the last item peek
-              margin: EdgeInsets.symmetric(horizontal: 4.w),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              margin: EdgeInsets.only(right: 12.w),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               decoration: BoxDecoration(
+                color: isSelected ? null : tc.inputBackground,
+                border: isSelected ? null : Border.all(color: tc.inputBorderColor, width: 1.2),
                 gradient: isSelected
                     ? LinearGradient(
                         colors: [
-                          AppColors.c053A4CA.withOpacity(0.8),
-                          AppColors.c5369CA.withOpacity(0.8),
+                          AppColors.c053A4CA,
+                          AppColors.c5369CA,
                         ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       )
                     : null,
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(24.r), // Pill shape
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.c5369CA.withOpacity(0.4),
+                          blurRadius: 12,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [],
               ),
               alignment: Alignment.center,
-              child: Column(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     tabs[index]['icon'] as IconData,
-                    color: isSelected ? tc.textColor : tc.textSecondaryColor,
-                    size: 18.sp,
+                    color: isSelected ? Colors.white : tc.textSecondaryColor,
+                    size: 20.sp,
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(width: 8.w),
                   Text(
                     tabs[index]['label'] as String,
                     style: TextStyle(
-                      color: isSelected ? tc.textColor : tc.textSecondaryColor,
-                      fontSize: 9.sp,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      color: isSelected ? Colors.white : tc.textSecondaryColor,
+                      fontSize: 13.sp,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ],

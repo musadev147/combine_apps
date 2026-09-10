@@ -194,6 +194,14 @@ class _CallScreenState extends State<CallScreen> {
 
             if (state == 'broadcasting') {
               return _buildBroadcastingUI(controller);
+            } else if (state == 'incoming') {
+              return _buildIncomingUI(controller);
+            } else if (state == 'accepted') {
+              return const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF53A4CA)),
+                ),
+              );
             } else if (state == 'connected') {
               return _buildConnectedUI(controller);
             } else {
@@ -216,6 +224,128 @@ class _CallScreenState extends State<CallScreen> {
           }),
         ),
       ),
+    );
+  }
+
+  Widget _buildIncomingUI(ConnectionController controller) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Spacer(),
+        Container(
+          padding: EdgeInsets.all(32.r),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: const Color(0xFF7953CA).withOpacity(0.2),
+            border: Border.all(color: const Color(0xFF7953CA).withOpacity(0.6), width: 2),
+          ),
+          child: Icon(
+            Icons.phone_in_talk,
+            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+            size: 64.r,
+          ),
+        ),
+        SizedBox(height: 32.h),
+        Text(
+          'INCOMING LIVE CALL',
+          style: GoogleFonts.outfit(
+            color: const Color(0xFF53A4CA),
+            fontWeight: FontWeight.w800,
+            fontSize: 14.sp,
+            letterSpacing: 2,
+          ),
+        ),
+        SizedBox(height: 12.h),
+        Text(
+          'Seller is answering',
+          style: GoogleFonts.outfit(
+            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 22.sp,
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          decoration: BoxDecoration(
+            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(24.r),
+            border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.2)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.tag, color: const Color(0xFF53A4CA), size: 16.r),
+              SizedBox(width: 6.w),
+              Text(
+                controller.callingTag.value,
+                style: GoogleFonts.poppins(
+                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15.sp,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Spacer(),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  controller.rejectIncomingCall();
+                  Get.back();
+                },
+                child: Container(
+                  margin: EdgeInsets.only(left: 20.w, right: 10.w),
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(24.r),
+                    border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Decline',
+                      style: GoogleFonts.poppins(
+                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => controller.acceptIncomingCall(),
+                child: Container(
+                  margin: EdgeInsets.only(right: 20.w, left: 10.w),
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(24.r),
+                    border: Border.all(color: Colors.greenAccent.withOpacity(0.5), width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Accept',
+                      style: GoogleFonts.poppins(
+                        color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 32.h),
+      ],
     );
   }
 

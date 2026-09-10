@@ -246,7 +246,10 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4.h),
-                        Row(
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8.w,
+                          runSpacing: 4.h,
                           children: [
                             Text(
                               "৳${note.price ?? '0'} • Qty: ${note.quantity ?? 1}",
@@ -256,7 +259,21 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(width: 8.w),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                              decoration: BoxDecoration(
+                                color: (note.isUnpromised ?? false) ? Colors.redAccent.withOpacity(0.1) : Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(6.r),
+                              ),
+                              child: Text(
+                                (note.isUnpromised ?? false) ? "Unpromised" : "Promised",
+                                style: TextStyle(
+                                  color: (note.isUnpromised ?? false) ? Colors.redAccent : Colors.green,
+                                  fontSize: 8.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                             Container(
                               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                               decoration: BoxDecoration(
@@ -321,9 +338,12 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                                   "qty": note.quantity ?? 1,
                                   "price": double.tryParse(note.price ?? "") ?? 0.0,
                                   "delivery": double.tryParse(note.deliveryCharge ?? "") ?? 0.0,
+                                  "service_charge": double.tryParse(note.serviceCharge ?? "") ?? 0.0,
+                                  "packing_charge": double.tryParse(note.packingCharge ?? "") ?? 0.0,
                                   "note": note.note ?? "",
                                   "isShortNote": true,
                                   "buyer_confirmed_delivery": false,
+                                  "is_unpromised": note.isUnpromised ?? false,
                                 },
                                 onCreateInvoice: (newInvoice) {
                                   _refreshNotes();

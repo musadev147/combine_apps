@@ -35,6 +35,7 @@ class _DashboardTabState extends State<DashboardTab> {
   double _paidBalance = 0.0;
   double _pendingBalance = 0.0;
   double _rejectedBalance = 0.0;
+  double _unpromiseBalance = 0.0;
   bool _isLoading = true;
 
   @override
@@ -59,6 +60,7 @@ class _DashboardTabState extends State<DashboardTab> {
           _paidBalance = double.tryParse(balanceData["paid_balance"]?.toString() ?? '0') ?? 0.0;
           _pendingBalance = double.tryParse(balanceData["pending_balance"]?.toString() ?? '0') ?? 0.0;
           _rejectedBalance = double.tryParse(balanceData["rejected_balance"]?.toString() ?? '0') ?? 0.0;
+          _unpromiseBalance = double.tryParse(balanceData["unpromise_balance"]?.toString() ?? '0') ?? 0.0;
           _isLoading = false;
         });
       } else {
@@ -237,6 +239,7 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
             ],
           ),
+
           SizedBox(height: 16.h),
           GlassCard(
             borderRadius: 20.r,

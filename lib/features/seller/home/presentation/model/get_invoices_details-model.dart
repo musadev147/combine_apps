@@ -18,6 +18,7 @@ class GetDetailsInvoiceModel {
   String? deliveryCharge;
   String? invoiceNumber;
   String? serviceCharge;
+  String? packingCharge;
 
   GetDetailsInvoiceModel(
       {this.id,
@@ -38,7 +39,8 @@ class GetDetailsInvoiceModel {
         this.shortNote,
         this.deliveryCharge,
         this.invoiceNumber,
-        this.serviceCharge});
+        this.serviceCharge,
+        this.packingCharge});
 
   GetDetailsInvoiceModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -60,6 +62,7 @@ class GetDetailsInvoiceModel {
     deliveryCharge = json['delivery_charge']?.toString();
     invoiceNumber = json['invoice_number'];
     serviceCharge = json['service_charge']?.toString();
+    packingCharge = json['packing_charge']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -83,6 +86,7 @@ class GetDetailsInvoiceModel {
     data['delivery_charge'] = this.deliveryCharge;
     data['invoice_number'] = this.invoiceNumber;
     data['service_charge'] = this.serviceCharge;
+    data['packing_charge'] = this.packingCharge;
     return data;
   }
 }
