@@ -55,8 +55,17 @@ class GetDetailsInvoiceModel {
     status = json['status'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    buyer = json['buyer'];
-    vendor = json['vendor'];
+    buyer = json['buyer']?.toString();
+    if (json['buyer'] is Map) {
+      buyer = json['buyer']['id']?.toString();
+      if (phoneNumber == null || phoneNumber!.isEmpty) {
+        phoneNumber = json['buyer']['phone_number']?.toString();
+      }
+      if (address == null || address!.isEmpty) {
+        address = json['buyer']['address']?.toString();
+      }
+    }
+    vendor = json['vendor']?.toString();
     tag = json['tag'];
     shortNote = json['short_note'];
     deliveryCharge = json['delivery_charge']?.toString();

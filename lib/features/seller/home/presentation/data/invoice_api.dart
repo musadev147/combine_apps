@@ -72,8 +72,8 @@ class InvoiceApi {
         }
       }
       return null;
-    } catch (error) {
-      log("FETCH INVOICE DETAILS API ERROR: $error");
+    } catch (error, stackTrace) {
+      log("FETCH INVOICE DETAILS API ERROR: $error\n$stackTrace");
       return null;
     }
   }

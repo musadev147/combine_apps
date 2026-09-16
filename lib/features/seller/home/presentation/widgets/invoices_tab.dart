@@ -587,13 +587,25 @@ class _InvoicesTabState extends State<InvoicesTab> {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      '$buyerName  •  ${inv.quantity ?? 1} Pcs',
+                      '$buyerName  •  ${inv.phoneNumber != null && inv.phoneNumber!.isNotEmpty ? inv.phoneNumber : "No Phone"}  •  ${inv.quantity ?? 1} Pcs',
                       style: TextStyle(
                         color: tc.textColor.withOpacity(0.85),
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    if (inv.address != null && inv.address!.isNotEmpty) ...[
+                      SizedBox(height: 4.h),
+                      Text(
+                        '📍 ${inv.address}',
+                        style: TextStyle(
+                          color: tc.textSecondaryColor,
+                          fontSize: 10.sp,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     if (isCompleted) ...[
                       SizedBox(height: 8.h),
                       Container(

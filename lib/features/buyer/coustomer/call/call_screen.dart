@@ -33,6 +33,8 @@ class _CallScreenState extends State<CallScreen> {
   final _deliveryController = TextEditingController();
   final _priceController = TextEditingController();
   final _noteController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
 
   @override
   void dispose() {
@@ -41,6 +43,8 @@ class _CallScreenState extends State<CallScreen> {
     _deliveryController.dispose();
     _priceController.dispose();
     _noteController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -68,6 +72,8 @@ class _CallScreenState extends State<CallScreen> {
     final qtyText = _quantityController.text.trim();
     final priceText = _priceController.text.trim();
     final note = _noteController.text.trim();
+    final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
 
     if (name.isEmpty || qtyText.isEmpty || priceText.isEmpty) {
       Get.snackbar(
@@ -107,6 +113,8 @@ class _CallScreenState extends State<CallScreen> {
       "delivery_charge": deliveryChargeVal,
       "buyer_confirmed_delivery": true,
       "note": note.isNotEmpty ? note : "No extra notes.",
+      if (phone.isNotEmpty) "phone_number": phone,
+      if (address.isNotEmpty) "address": address,
       "is_processed": false,
       "created_at": DateTime.now().toUtc().toIso8601String(),
       "updated_at": DateTime.now().toUtc().toIso8601String(),
@@ -156,6 +164,8 @@ class _CallScreenState extends State<CallScreen> {
           _priceController.clear();
           _deliveryController.clear();
           _noteController.clear();
+          _phoneController.clear();
+          _addressController.clear();
         });
 
         Get.snackbar(
@@ -371,7 +381,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   controller.callingTagOrProduct.value,
                   style: GoogleFonts.outfit(
-                    color: Colors.white,
+                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
                     fontSize: 28.sp,
                     fontWeight: FontWeight.w900,
                   ),
@@ -380,7 +390,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   'Pinging ${controller.matchingSellersCount.value} online specialists...',
                   style: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
                     fontSize: 13.sp,
                   ),
                 ),
@@ -422,7 +432,7 @@ class _CallScreenState extends State<CallScreen> {
                       ),
                       child: Icon(
                         Icons.settings_input_antenna,
-                        color: Colors.white,
+                        color: const Color(0xFF53A4CA),
                         size: 40,
                       ),
                     ),
@@ -438,7 +448,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   'Waiting for sellers to accept...',
                   style: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.4),
+                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
                     fontSize: 12.sp,
                   ),
                 ),
@@ -827,7 +837,7 @@ class _CallScreenState extends State<CallScreen> {
                 Text(
                   seller?.name ?? 'Seller',
                   style: GoogleFonts.poppins(
-                    color: Colors.white,
+                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
                     fontSize: 22.sp,
                     fontWeight: FontWeight.bold,
                   ),
@@ -837,7 +847,7 @@ class _CallScreenState extends State<CallScreen> {
                   () => Text(
                     controller.callTimerString.value,
                     style: GoogleFonts.poppins(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
                       fontSize: 16.sp,
                       fontWeight: FontWeight.normal,
                     ),
@@ -871,14 +881,14 @@ class _CallScreenState extends State<CallScreen> {
                             children: [
                               Icon(
                                 Icons.post_add_rounded,
-                                color: Colors.white,
+                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black87,
                                 size: 20,
                               ),
                               SizedBox(width: 8.w),
                               Text(
                                 "Short Note",
                                 style: GoogleFonts.poppins(
-                                  color: Colors.white,
+                                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black87,
                                   fontSize: 14.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -1094,12 +1104,27 @@ class _CallScreenState extends State<CallScreen> {
                   // ),
                   SizedBox(height: 12.h),
                   _buildGlassInputField(
+                    controller: _phoneController,
+                    label: "Phone Number",
+                    icon: Icons.phone_outlined,
+                    hint: "e.g., 017xxxxxxxx",
+                    keyboardType: TextInputType.phone,
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildGlassInputField(
+                    controller: _addressController,
+                    label: "Delivery Address",
+                    icon: Icons.location_on_outlined,
+                    hint: "e.g., House 12, Road 5, Dhaka",
+                  ),
+                  SizedBox(height: 12.h),
+                  _buildGlassInputField(
                     controller: _noteController,
                     label: "Note",
                     icon: Icons.note_alt_outlined,
                     hint: "e.g., Please wrap securely.",
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 24.h),
                   Container(
                     width: double.infinity,
                     height: 48.h,

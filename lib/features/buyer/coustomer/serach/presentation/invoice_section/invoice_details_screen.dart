@@ -441,24 +441,30 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
     String selectedMethod = 'bkash';
     bool isSubmitting = false;
 
-    Get.bottomSheet(
-      StatefulBuilder(
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
         builder: (context, setModalState) {
-          return Container(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.85,
-            ),
-            padding: EdgeInsets.only(
-              top: 20.h,
-              left: 20.w,
-              right: 20.w,
-              bottom: 24.h + MediaQuery.of(context).viewInsets.bottom,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E38),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
-            ),
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
+              ),
+              padding: EdgeInsets.only(
+                top: 20.h,
+                left: 20.w,
+                right: 20.w,
+                bottom: 24.h,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E38),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
+              ),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
@@ -669,12 +675,12 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                   ),
                 ],
               ),
+              ),
             ),
           );
         },
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+        );
+      },
     );
   }
 
@@ -1019,10 +1025,14 @@ class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
                 padding: EdgeInsets.all(20.r),
                 child: Column(
                   children: [
-                    _buildDetailRow(Icons.person_outline, 'Buyer ID', _invoice!.buyer ?? ''),
-                    _buildDetailDivider(),
-                    _buildDetailRow(Icons.storefront_outlined, 'Vendor ID', _invoice!.vendor ?? ''),
-                    _buildDetailDivider(),
+                    if (_invoice!.buyerName != null && _invoice!.buyerName!.isNotEmpty) ...[
+                      _buildDetailRow(Icons.person_outline, 'Buyer', _invoice!.buyerName!),
+                      _buildDetailDivider(),
+                    ],
+                    if (_invoice!.vendorName != null && _invoice!.vendorName!.isNotEmpty) ...[
+                      _buildDetailRow(Icons.storefront_outlined, 'Vendor', _invoice!.vendorName!),
+                      _buildDetailDivider(),
+                    ],
                     _buildDetailRow(Icons.phone_outlined, 'Phone Number', _invoice!.phoneNumber ?? ''),
                     _buildDetailDivider(),
                     _buildDetailRow(Icons.location_on_outlined, 'Address', _invoice!.address ?? ''),

@@ -200,6 +200,9 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
   }
 
   void _showRegionSelectionDialog(BuildContext context, AllSubCategoryModel sub) {
+    List<String> regions = (sub.region ?? "All Regions").split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (regions.isEmpty) regions = ["All Regions"];
+
     Get.dialog(
       AlertDialog(
         backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white,
@@ -210,35 +213,44 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "This tag is associated with the following region. Click on it to initiate the call:",
+              "This tag is associated with the following regions. Click on one to initiate the call:",
               style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            InkWell(
-              onTap: () {
-                Get.back();
-                _handleSubCategoryClick(sub);
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF53A4CA).withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(color: const Color(0xFF53A4CA)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      sub.region ?? "All Regions",
-                      style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontWeight: FontWeight.bold),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: regions.map((region) {
+                return InkWell(
+                  onTap: () {
+                    Get.back();
+                    _handleSubCategoryClick(sub, region: region == "All Regions" ? null : region);
+                  },
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF53A4CA).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: const Color(0xFF53A4CA).withOpacity(0.5)),
                     ),
-                    Icon(Icons.phone_in_talk, color: Colors.greenAccent),
-                  ],
-                ),
-              ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          region,
+                          style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(Icons.phone_in_talk, color: Colors.greenAccent, size: 16.sp),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -252,14 +264,14 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
     );
   }
 
-  void _handleSubCategoryClick(AllSubCategoryModel sub) {
+  void _handleSubCategoryClick(AllSubCategoryModel sub, {String? region}) {
     if (sub.id != null) {
       try {
         final wsService = Get.find<WebSocketService>();
-        wsService.initiateCall(tagId: sub.id!, callType: 'video');
+        wsService.initiateCall(tagId: sub.id!, callType: 'video', region: region);
         Get.snackbar(
           "Calling",
-          "Initiating call for sub-category: #${sub.tagname}",
+          "Initiating call for #${sub.tagname}${region != null ? ' in $region' : ''}",
           colorText: Colors.white,
           backgroundColor: Colors.green.withOpacity(0.8),
           duration: const Duration(seconds: 4),
@@ -983,15 +995,22 @@ class _BuyerHomeScreenState extends State<BuyerHomeScreen>
             separatorBuilder: (_, __) => SizedBox(width: 8.w),
             itemBuilder: (context, index) {
               final tag = trendingList[index];
+              String displayName = tag.tagname ?? "";
+              if (displayName.contains('(')) {
+                displayName = displayName.substring(0, displayName.indexOf('(')).trim();
+              }
               return GestureDetector(
-                onTap: () => Get.toNamed(Routes.SEARCH, arguments: tag.tagname),
+                onTap: () => Get.toNamed(Routes.SEARCH, arguments: displayName),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
                   decoration: BoxDecoration(
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(20.r),
-                    color: Colors.black.withOpacity(0.04),
                     border: Border.all(
-                      color: const Color(0xFF5369CA).withOpacity(0.3),
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().dividerColor
+                          : Colors.black12,
+                      width: 1,
                     ),
                   ),
                   child: Row(

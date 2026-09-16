@@ -46,7 +46,7 @@ class GetInvoiceModel {
   String? updatedAt;
   String? buyer;
   String? vendor;
-  Null? tag;
+  String? tag;
   String? shortNote;
   String? deliveryCharge;
   String? serviceCharge;
@@ -88,7 +88,16 @@ class GetInvoiceModel {
     status = json['status'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    buyer = json['buyer'];
+    buyer = json['buyer']?.toString();
+    if (json['buyer'] is Map) {
+      buyer = json['buyer']['id']?.toString();
+      if (phoneNumber == null || phoneNumber!.isEmpty) {
+        phoneNumber = json['buyer']['phone_number']?.toString();
+      }
+      if (address == null || address!.isEmpty) {
+        address = json['buyer']['address']?.toString();
+      }
+    }
     vendor = json['vendor'];
     tag = json['tag'];
     shortNote = json['short_note'];

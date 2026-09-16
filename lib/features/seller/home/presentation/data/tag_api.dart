@@ -67,17 +67,21 @@ class TagApi {
     }
   }
 
-  Future<bool> postVendorTag(String adminTagId) async {
+  Future<bool> postVendorTag(String adminTagId, {String? region}) async {
     try {
       final vendorId = appData.read(kKeyUserID)?.toString() ?? '';
       if (vendorId.isEmpty) {
         Get.snackbar("Error", "Vendor ID is missing. Please log out and log in again.");
         return false;
       }
-      final response = await postHttp(Endpoints.vendorTags(), {
+      final Map<String, dynamic> body = {
         'admin_tag': adminTagId,
         'vendor': vendorId,
-      });
+      };
+      if (region != null && region.isNotEmpty) {
+        body['region'] = region;
+      }
+      final response = await postHttp(Endpoints.vendorTags(), body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;

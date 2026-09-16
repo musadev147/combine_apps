@@ -77,10 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 1,
                           ),
                         ),
-                        child: Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 56.r,
-                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                        child: Image.asset(
+                          'assets/icons/launcer_icon.png',
+                          height: 56.r,
+                          width: 56.r,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -88,11 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     Center(
                       child: Text(
                         'Damadami Live',
-                        style: GoogleFonts.outfit(
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.w900,
+                        style: GoogleFonts.poppins(
+                          fontSize: 30.sp,
+                          fontWeight: FontWeight.w700,
                           color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
-                          letterSpacing: 1.5,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ),

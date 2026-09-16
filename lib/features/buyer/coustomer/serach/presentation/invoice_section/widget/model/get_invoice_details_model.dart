@@ -12,8 +12,10 @@ class GetInvoiceDetailsModel {
   String? createdAt;
   String? updatedAt;
   String? buyer;
+  String? buyerName;
   String? vendor;
-  Null? tag;
+  String? vendorName;
+  dynamic tag;
   String? shortNote;
   String? deliveryCharge;
   String? serviceCharge;
@@ -33,7 +35,9 @@ class GetInvoiceDetailsModel {
         this.createdAt,
         this.updatedAt,
         this.buyer,
+        this.buyerName,
         this.vendor,
+        this.vendorName,
         this.tag,
         this.shortNote,
         this.deliveryCharge,
@@ -53,8 +57,22 @@ class GetInvoiceDetailsModel {
     status = json['status'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
-    buyer = json['buyer'];
-    vendor = json['vendor'];
+    if (json['buyer'] is Map) {
+      buyer = json['buyer']['id']?.toString();
+      buyerName = json['buyer']['name']?.toString() ?? json['buyer']['email']?.toString() ?? json['buyer']['username']?.toString();
+    } else {
+      buyer = json['buyer']?.toString();
+      buyerName = json['buyer_name']?.toString();
+    }
+    
+    if (json['vendor'] is Map) {
+      vendor = json['vendor']['id']?.toString();
+      vendorName = json['vendor']['name']?.toString() ?? json['vendor']['email']?.toString() ?? json['vendor']['username']?.toString();
+    } else {
+      vendor = json['vendor']?.toString();
+      vendorName = json['vendor_name']?.toString();
+    }
+    
     tag = json['tag'];
     shortNote = json['short_note'];
     deliveryCharge = json['delivery_charge']?.toString();

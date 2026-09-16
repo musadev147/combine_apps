@@ -17,7 +17,8 @@ import 'package:bd_shope_combined/features/buyer/home/home_screen/model/tranding
 class TagSuggestionItem {
   final String name;
   final String? id;
-  TagSuggestionItem({required this.name, this.id});
+  final String? region;
+  TagSuggestionItem({required this.name, this.id, this.region});
 }
 
 class SearchScreen extends StatefulWidget {
@@ -44,12 +45,10 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch initial tags from searchTag API and trending tags
     getSerachTagRx.searchTag(query: '');
     getTrendingTagsRx.fetchTrendingTags();
     _searchController.addListener(_onSearchChanged);
 
-    // Listen to callState changes to auto-refresh results when the call ends
     _callStateSubscription = _connectionController.callState.listen((state) {
       if (state == 'idle' || state == 'ended') {
         getSerachTagRx.searchTag(query: _searchController.text);
@@ -59,7 +58,6 @@ class _SearchScreenState extends State<SearchScreen> {
       }
     });
 
-    // Check if arguments were passed (e.g., from Categories or Popular Tags)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.arguments != null && Get.arguments is String) {
         final prefilledQuery = Get.arguments as String;
@@ -105,12 +103,79 @@ class _SearchScreenState extends State<SearchScreen> {
     return null;
   }
 
-  void _performProductSearch(String query, {String? tagId}) {
+  void _performProductSearch(String query, {String? tagId, String? region}) {
     if (query.trim().isEmpty) return;
     _connectionController.broadcastCallForTag(
       tag: query.trim(),
       callType: 'video',
       tagId: tagId ?? _getTagId(query),
+      region: region,
+    );
+  }
+
+  void _showRegionSelectionDialog(BuildContext context, TagSuggestionItem tag) {
+    List<String> regions = (tag.region ?? "All Regions").split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    if (regions.isEmpty) regions = ["All Regions"];
+
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        title: Text(
+          "Select Region for #${tag.name}",
+          style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "This tag is associated with the following regions. Click on one to initiate the call:",
+              style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: regions.map((region) {
+                return InkWell(
+                  onTap: () {
+                    Get.back();
+                    _searchController.text = tag.name;
+                    _performProductSearch(tag.name, tagId: tag.id, region: region == "All Regions" ? null : region);
+                  },
+                  borderRadius: BorderRadius.circular(20.r),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF53A4CA).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: const Color(0xFF53A4CA).withOpacity(0.5)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          region,
+                          style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 6.w),
+                        Icon(Icons.phone_in_talk, color: Colors.greenAccent, size: 16.sp),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text("Cancel", style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -304,14 +369,38 @@ class _SearchScreenState extends State<SearchScreen> {
               if (hasSearchData) {
                 tags = searchSnapshot.data!
                     .where((m) => m.tagname != null && m.tagname!.isNotEmpty)
-                    .map((m) => TagSuggestionItem(name: m.tagname!, id: m.id))
+                    .map((m) {
+                      String name = m.tagname!;
+                      String? extractedRegion = m.region;
+                      if (name.contains('(')) {
+                        final startIdx = name.indexOf('(');
+                        final endIdx = name.indexOf(')');
+                        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+                          extractedRegion = name.substring(startIdx + 1, endIdx).trim();
+                        }
+                        name = name.substring(0, startIdx).trim();
+                      }
+                      return TagSuggestionItem(name: name, id: m.id, region: extractedRegion);
+                    })
                     .toList();
               } else {
                 final List<TagSuggestionItem> allAvailableTags = [];
                 if (trendingSnapshot.hasData) {
                   allAvailableTags.addAll(trendingSnapshot.data!
                       .where((m) => m.tagname != null && m.tagname!.isNotEmpty)
-                      .map((m) => TagSuggestionItem(name: m.tagname!, id: m.id)));
+                      .map((m) {
+                        String name = m.tagname!;
+                        String? extractedRegion;
+                        if (name.contains('(')) {
+                          final startIdx = name.indexOf('(');
+                          final endIdx = name.indexOf(')');
+                          if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+                            extractedRegion = name.substring(startIdx + 1, endIdx).trim();
+                          }
+                          name = name.substring(0, startIdx).trim();
+                        }
+                        return TagSuggestionItem(name: name, id: m.id, region: extractedRegion);
+                      }));
                 }
                 allAvailableTags.addAll(_trendingTags.map((t) => TagSuggestionItem(name: t)));
                 
@@ -330,7 +419,19 @@ class _SearchScreenState extends State<SearchScreen> {
               final List<TagSuggestionItem> allAvailableTags = [];
               allAvailableTags.addAll(trendingData
                   .where((m) => m.tagname != null && m.tagname!.isNotEmpty)
-                  .map((m) => TagSuggestionItem(name: m.tagname!, id: m.id)));
+                  .map((m) {
+                    String name = m.tagname!;
+                    String? extractedRegion;
+                    if (name.contains('(')) {
+                      final startIdx = name.indexOf('(');
+                      final endIdx = name.indexOf(')');
+                      if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+                        extractedRegion = name.substring(startIdx + 1, endIdx).trim();
+                      }
+                      name = name.substring(0, startIdx).trim();
+                    }
+                    return TagSuggestionItem(name: name, id: m.id, region: extractedRegion);
+                  }));
               allAvailableTags.addAll(_trendingTags.map((t) => TagSuggestionItem(name: t)));
               
               final seenNames = <String>{};
@@ -360,8 +461,12 @@ class _SearchScreenState extends State<SearchScreen> {
                     return ActionChip(
                       label: Text('#${tag.name}'),
                       onPressed: () {
-                        _searchController.text = tag.name;
-                        _performProductSearch(tag.name, tagId: tag.id);
+                        if (tag.region != null && tag.region!.trim().isNotEmpty) {
+                          _showRegionSelectionDialog(context, tag);
+                        } else {
+                          _searchController.text = tag.name;
+                          _performProductSearch(tag.name, tagId: tag.id);
+                        }
                       },
                       backgroundColor: const Color(0xFF7953CA),
                       labelStyle: GoogleFonts.poppins(color: Colors.white, fontSize: 13.sp),

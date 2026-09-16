@@ -491,7 +491,8 @@ class CallController extends GetxController {
     // Show persistent ongoing call notification
     NotificationService.instance.showOngoingCallNotification(currentCustomerId.value);
 
-    // Start polling for new short notes during call
+    // Start polling for new short notes during call (DISABLED TO PREVENT CONSOLE SPAM)
+    /*
     _lastShortNoteId = null;
     ShortNoteApi.instance
         .fetchShortNotes()
@@ -526,6 +527,7 @@ class CallController extends GetxController {
         log('CallController: Error polling short notes: $e');
       }
     });
+    */
   }
 
   void stopCallTimer() {

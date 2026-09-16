@@ -92,8 +92,8 @@ class WebSocketService extends GetxService {
       });
 
       _channel!.stream.listen(
-        (Object? message) {
-          log('WebSocket Message Received: $message');
+        (message) {
+          // log('WebSocket Message Received: $message');
           try {
             if (message is String) {
               final Map<String, dynamic> data = jsonDecode(message) as Map<String, dynamic>;
@@ -143,8 +143,7 @@ class WebSocketService extends GetxService {
     _channel!.sink.add(jsonEncode(payload));
   }
 
-  /// Initiates a call with a specific tag ID
-  void initiateCall({required String tagId, required String callType}) {
+  void initiateCall({required String tagId, required String callType, String? region}) {
     if (!_isConnected || _channel == null) {
       log('Cannot initiate call: WebSocket not connected');
       connect();
@@ -155,6 +154,7 @@ class WebSocketService extends GetxService {
       'action': 'initiate_call',
       'tag_id': tagId,
       'call_type': callType,
+      if (region != null && region.isNotEmpty) 'region': region,
       'buyer_image': appData.read<String>('avatar_path') ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200',
     };
 

@@ -237,7 +237,7 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          note.productName ?? 'N/A',
+                          note.buyerName ?? note.productName ?? 'N/A',
                           style: TextStyle(
                             color: tc.textColor,
                             fontWeight: FontWeight.bold,
@@ -246,6 +246,16 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4.h),
+                        if (note.buyerName != null && note.productName != null) ...[
+                          Text(
+                            note.productName!,
+                            style: TextStyle(
+                              color: tc.textSecondaryColor,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                        ],
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 8.w,
@@ -333,7 +343,8 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                               builder: (context) => CreateInvoiceScreen(
                                 initialLog: {
                                   "id": note.id ?? "",
-                                  "buyer": note.buyer ?? "",
+                                  "buyerId": note.buyer ?? "",
+                                  "buyer": note.buyerName ?? "",
                                   "item": note.productName ?? "",
                                   "qty": note.quantity ?? 1,
                                   "price": double.tryParse(note.price ?? "") ?? 0.0,
@@ -341,6 +352,8 @@ class _ShortNotesTabState extends State<ShortNotesTab> {
                                   "service_charge": double.tryParse(note.serviceCharge ?? "") ?? 0.0,
                                   "packing_charge": double.tryParse(note.packingCharge ?? "") ?? 0.0,
                                   "note": note.note ?? "",
+                                  "phone_number": note.phoneNumber ?? "",
+                                  "address": note.address ?? "",
                                   "isShortNote": true,
                                   "buyer_confirmed_delivery": false,
                                   "is_unpromised": note.isUnpromised ?? false,

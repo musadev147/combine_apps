@@ -252,11 +252,11 @@ class _PromiseNotesTabState extends State<PromiseNotesTab> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => CreateInvoiceScreen(
-                                initialLog: {
-                                  "id": item['id'] ?? "",
-                                  "buyer": buyerName,
-                                  "buyerId": item['buyer'] != null ? item['buyer']['id'] : null,
-                                  "item": productName,
+                              initialLog: {
+                                "id": item['id'] ?? "",
+                                "buyer": buyerName,
+                                "buyerId": item['buyer'] != null ? item['buyer']['id'] : null,
+                                "item": productName,
                                 "qty": item['quantity'] ?? 1,
                                 "price": double.tryParse(item['price']?.toString() ?? "") ?? 0.0,
                                 "delivery": double.tryParse(item['delivery_charge']?.toString() ?? "") ?? 0.0,
@@ -264,6 +264,8 @@ class _PromiseNotesTabState extends State<PromiseNotesTab> {
                                 "packing_charge": double.tryParse(item['packing_charge']?.toString() ?? "") ?? 0.0,
                                 "is_unpromised": item['is_unpromised'] ?? false,
                                 "note": item['note'] ?? "",
+                                "phone_number": item['buyer'] != null ? item['buyer']['phone_number'] ?? "" : "",
+                                "address": item['buyer'] != null ? item['buyer']['address'] ?? "" : "",
                                 "isShortNote": true,
                                 "buyer_confirmed_delivery": false,
                               },

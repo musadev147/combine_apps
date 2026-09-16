@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -39,12 +40,21 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
   late TextEditingController _deliveryChargeCtrl;
   late TextEditingController _serviceChargeCtrl;
   late TextEditingController _packingChargeCtrl;
+  late TextEditingController _phoneCtrl;
 
   double _subtotal = 0.0;
   double _total = 0.0;
   String? _realBuyerUuid;
   final List<Map<String, dynamic>> _uiUsersList = [];
   Map<String, dynamic>? _selectedUser;
+
+  String _generateDynamicUUID() {
+    final random = math.Random();
+    String generateHex(int length) {
+      return List.generate(length, (_) => random.nextInt(16).toRadixString(16)).join();
+    }
+    return '${generateHex(8)}-${generateHex(4)}-4${generateHex(3)}-a${generateHex(3)}-${generateHex(12)}';
+  }
 
   @override
   void initState() {
@@ -54,10 +64,17 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _itemNameCtrl = TextEditingController(text: widget.initialLog?["item"] ?? "");
     _priceCtrl = TextEditingController(text: widget.initialLog?["price"]?.toString() ?? "");
     _qtyCtrl = TextEditingController(text: widget.initialLog?["qty"]?.toString() ?? "1");
-    _addressCtrl = TextEditingController(text: widget.initialLog?["note"] ?? "");
-    _deliveryChargeCtrl = TextEditingController(text: widget.initialLog?["delivery"]?.toString() ?? "0.0");
-    _serviceChargeCtrl = TextEditingController(text: widget.initialLog?["service_charge"]?.toString() ?? "0.0");
-    _packingChargeCtrl = TextEditingController(text: widget.initialLog?["packing_charge"]?.toString() ?? "0.0");
+    _addressCtrl = TextEditingController(text: widget.initialLog?["address"]?.toString() ?? widget.initialLog?["note"]?.toString() ?? "");
+    String getInitial(String key) {
+      final val = widget.initialLog?[key]?.toString();
+      if (val == null || val == '0' || val == '0.0') return '';
+      return val;
+    }
+    
+    _deliveryChargeCtrl = TextEditingController(text: getInitial("delivery"));
+    _serviceChargeCtrl = TextEditingController(text: getInitial("service_charge"));
+    _packingChargeCtrl = TextEditingController(text: getInitial("packing_charge"));
+    _phoneCtrl = TextEditingController(text: widget.initialLog?["phone_number"]?.toString() ?? "");
 
     _priceCtrl.addListener(_calculateTotals);
     _qtyCtrl.addListener(_calculateTotals);
@@ -72,6 +89,20 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final packingCharge = double.tryParse(_packingChargeCtrl.text) ?? 0.0;
     _subtotal = price * qty;
     _total = _subtotal + delivery + serviceCharge + packingCharge;
+
+    final targetName = widget.initialLog?["buyer"]?.toString() ?? '';
+    final targetId = widget.initialLog?["buyerId"]?.toString() ?? '';
+    if (targetName.isNotEmpty) {
+      final syntheticUser = {
+        "id": targetId.isNotEmpty ? targetId : "synthetic_id",
+        "name": targetName,
+        "role": "Buyer",
+        "is_synthetic": true,
+      };
+      _uiUsersList.add(syntheticUser);
+      _selectedUser = syntheticUser;
+      _realBuyerUuid = targetId;
+    }
 
     _fetchUsersList();
   }
@@ -157,6 +188,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     final targetId = widget.initialLog?["buyerId"]?.toString() ?? '';
 
     setState(() {
+      _uiUsersList.removeWhere((u) => u['is_synthetic'] == true);
+      _selectedUser = null;
+
       for (var user in usersList) {
         if (user is Map) {
           final mappedUser = Map<String, dynamic>.from(user);
@@ -191,7 +225,18 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
       }
 
       // If no matching user, and we have items, set the first user as selected by default
-      if (_selectedUser == null && _uiUsersList.isNotEmpty) {
+      if (_selectedUser == null && (targetId.isNotEmpty || targetName.isNotEmpty)) {
+        final syntheticUser = {
+          "id": targetId.isNotEmpty ? targetId : "synthetic_id",
+          "name": targetName,
+          "role": "Buyer",
+          "is_synthetic": true,
+        };
+        _uiUsersList.insert(0, syntheticUser);
+        _selectedUser = syntheticUser;
+        _realBuyerUuid = targetId;
+        log("INJECTED SYNTHETIC BUYER: $targetName (ID: $targetId)");
+      } else if (_selectedUser == null && _uiUsersList.isNotEmpty) {
         _selectedUser = _uiUsersList.first;
         _realBuyerUuid = _selectedUser!['id']?.toString() ?? _selectedUser!['uuid']?.toString();
         log("DEFAULT SELECTED FIRST BUYER: ${_selectedUser!['name'] ?? _selectedUser!['username']} (ID: $_realBuyerUuid)");
@@ -210,6 +255,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     _deliveryChargeCtrl.dispose();
     _serviceChargeCtrl.dispose();
     _packingChargeCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -232,6 +278,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     String? Function(String?)? validator,
+    String? hintText,
   }) {
     final tc = Get.find<ThemeController>();
     return Container(
@@ -244,6 +291,9 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
         decoration: InputDecoration(
           labelText: labelText,
           labelStyle: TextStyle(color: tc.textSecondaryColor),
+          floatingLabelBehavior: hintText != null ? FloatingLabelBehavior.always : FloatingLabelBehavior.auto,
+          hintText: hintText,
+          hintStyle: TextStyle(color: tc.textSecondaryColor.withOpacity(0.5)),
           prefixIcon: Icon(icon, color: const Color(0xFF53A4CA), size: 20.sp),
           filled: true,
           fillColor: tc.inputBackground,
@@ -355,6 +405,10 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                                     if (val['name'] != null) {
                                       _buyerNameCtrl.text = val['name'];
                                     }
+                                    final phone = val['phone']?.toString() ?? val['phone_number']?.toString() ?? '';
+                                    if (phone.isNotEmpty) {
+                                      _phoneCtrl.text = phone;
+                                    }
                                   }
                                 });
                               },
@@ -440,6 +494,12 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                   child: Column(
                     children: [
                       _buildTextField(
+                        controller: _phoneCtrl,
+                        labelText: "Phone Number",
+                        icon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      _buildTextField(
                         controller: _addressCtrl,
                         labelText: "Shipping Address / Notes",
                         icon: Icons.description_outlined,
@@ -447,6 +507,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       _buildTextField(
                         controller: _deliveryChargeCtrl,
                         labelText: "Delivery Charge (৳)",
+                        hintText: "0.0",
                         icon: Icons.local_shipping_outlined,
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -459,6 +520,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       _buildTextField(
                         controller: _serviceChargeCtrl,
                         labelText: "Service Charge (৳)",
+                        hintText: "0.0",
                         icon: Icons.miscellaneous_services_outlined,
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -471,6 +533,7 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                       _buildTextField(
                         controller: _packingChargeCtrl,
                         labelText: "Packaging Charge (৳)",
+                        hintText: "0.0",
                         icon: Icons.inventory_2_outlined,
                         keyboardType: TextInputType.number,
                         validator: (value) {
@@ -575,8 +638,24 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                            }
                          }
 
+                         final bool isFromCall = widget.initialLog?["isFromCall"] == true;
+
+                         if (!isFromCall && _selectedUser != null && _selectedUser!['is_synthetic'] == true) {
+                           final hasValidUuid = RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(_realBuyerUuid ?? "");
+                           if (!hasValidUuid) {
+                             await EasyLoading.dismiss();
+                             Get.snackbar(
+                               "Invalid Buyer",
+                               "The buyer was not found in your registered buyers list and lacks a valid ID. Please manually select a valid buyer from the dropdown.",
+                               colorText: Colors.white,
+                               backgroundColor: Colors.redAccent,
+                             );
+                             return;
+                           }
+                         }
+
                          if (!RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(buyer)) {
-                           buyer = _realBuyerUuid ?? widget.initialLog?["buyerId"]?.toString() ?? "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+                           buyer = _realBuyerUuid ?? "";
                          }
                          final productName = _itemNameCtrl.text.trim();
                          final price = _priceCtrl.text.trim();
@@ -586,28 +665,70 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                          final serviceCharge = _serviceChargeCtrl.text.trim();
                          final packingCharge = _packingChargeCtrl.text.trim();
 
-                         final buyerPhone = _selectedUser?['phone'] ?? _selectedUser?['phone_number'] ?? '';
+                         String buyerPhone = _phoneCtrl.text.trim();
+                         if (buyerPhone.isEmpty) {
+                           buyerPhone = _selectedUser?['phone']?.toString() ?? _selectedUser?['phone_number']?.toString() ?? '';
+                         }
                          final double totalPriceVal = (double.tryParse(price) ?? 0.0) * quantity + (double.tryParse(delivery) ?? 0.0) + (double.tryParse(serviceCharge) ?? 0.0) + (double.tryParse(packingCharge) ?? 0.0);
 
-                         final invoiceModel = PostInvoiceModel(
-                           buyer: buyer,
-                           pricePerPiece: price,
-                           quantity: quantity,
-                           totalPrice: totalPriceVal.toString(),
-                           address: note,
-                           phoneNumber: buyerPhone.isNotEmpty ? buyerPhone : "01700000000",
-                           productName: productName,
-                           isConfirm: true,
-                           buyerConfirmedDelivery: true,
-                           status: "pending",
-                           tag: null,
-                           shortNote: isShortNote ? (widget.initialLog?["id"]?.toString()) : null,
-                           deliveryCharge: delivery,
-                           serviceCharge: serviceCharge,
-                           packingCharge: packingCharge,
-                         );
+                         bool success = false;
 
-                        final success = await InvoiceApi.instance.createInvoice(invoiceModel);
+                         if (isFromCall) {
+                           final sessionId = widget.initialLog?["sessionId"]?.toString() ?? "";
+                           
+                           if (sessionId.isEmpty) {
+                             await EasyLoading.dismiss();
+                             Get.snackbar("Error", "Missing call session ID. Cannot create invoice.", backgroundColor: Colors.redAccent, colorText: Colors.white);
+                             return;
+                           }
+
+                           final payload = {
+                             "session_id": sessionId,
+                             "price_per_piece": double.tryParse(price) ?? 0.0,
+                             "quantity": quantity,
+                           };
+                           
+                           if (productName.isNotEmpty) payload["product_name"] = productName;
+                           if (delivery.isNotEmpty) payload["delivery_charge"] = double.tryParse(delivery) ?? 0.0;
+                           if (serviceCharge.isNotEmpty) payload["service_charge"] = double.tryParse(serviceCharge) ?? 0.0;
+                           if (packingCharge.isNotEmpty) payload["packing_charge"] = double.tryParse(packingCharge) ?? 0.0;
+                           if (note.isNotEmpty) payload["address"] = note;
+                           if (buyerPhone.isNotEmpty) payload["phone_number"] = buyerPhone;
+                           
+                           try {
+                             final response = await postHttp(Endpoints.invoice(), payload);
+                             success = (response.statusCode == 200 || response.statusCode == 201);
+                             if (!success) log("Call Invoice API failed: ${response.data}");
+                           } catch (e) {
+                             log("Call Invoice API exception: $e");
+                           }
+                         } else {
+                           if (buyer.isEmpty || !RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(buyer)) {
+                             await EasyLoading.dismiss();
+                             Get.snackbar("Error", "Missing or invalid buyer ID. Cannot create invoice.", backgroundColor: Colors.redAccent, colorText: Colors.white);
+                             return;
+                           }
+
+                           final invoiceModel = PostInvoiceModel(
+                             buyer: buyer,
+                             pricePerPiece: price,
+                             quantity: quantity,
+                             totalPrice: totalPriceVal.toString(),
+                             address: note,
+                             phoneNumber: buyerPhone.isNotEmpty ? buyerPhone : "01700000000",
+                             productName: productName,
+                             isConfirm: true,
+                             buyerConfirmedDelivery: true,
+                             status: "pending",
+                             tag: null,
+                             shortNote: isShortNote ? (widget.initialLog?["id"]?.toString()) : null,
+                             deliveryCharge: delivery,
+                             serviceCharge: serviceCharge,
+                             packingCharge: packingCharge,
+                           );
+
+                           success = await InvoiceApi.instance.createInvoice(invoiceModel);
+                         }
 
                         await EasyLoading.dismiss();
 
@@ -648,6 +769,14 @@ class _CreateInvoiceScreenState extends State<CreateInvoiceScreen> {
                           backgroundColor: Colors.redAccent.withOpacity(0.8),
                         );
                       }
+                    } else {
+                      Get.snackbar(
+                        "Invalid Form",
+                        "Please fill in all required fields (like Product Name and Price).",
+                        colorText: Colors.white,
+                        backgroundColor: Colors.redAccent,
+                        snackPosition: SnackPosition.TOP,
+                      );
                     }
                   },
                 ),

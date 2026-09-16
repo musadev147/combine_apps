@@ -1008,6 +1008,7 @@ class ConnectionController extends GetxController {
     required String tag,
     required String callType,
     String? tagId,
+    String? region,
   }) async {
     callingTagOrProduct.value = tag;
     callingCategory.value = tag;
@@ -1055,7 +1056,7 @@ class ConnectionController extends GetxController {
 
     // Send via WebSocket Service
     if (tagId != null && tagId.isNotEmpty) {
-      Get.find<WebSocketService>().initiateCall(tagId: tagId, callType: callType);
+      Get.find<WebSocketService>().initiateCall(tagId: tagId, callType: callType, region: region);
     } else {
       Get.find<WebSocketService>().sendCallRequest(
         product: tag,

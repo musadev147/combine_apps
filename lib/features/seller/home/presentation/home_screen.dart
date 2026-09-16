@@ -143,6 +143,12 @@ class _HomeScreenState extends State<HomeScreen>
       "time": "03:13 PM",
     },
   ];
+  final List<String> _trendingTags = [
+    'fashion', 'electronics', 'wholesale', 'clothing', 'mobile', 'gaming',
+    'apple', 'nike', 'luxury', 'organic',
+  ];
+
+  final Map<String, Set<String>> _selectedTagRegions = {};
   final _supportMsgController = TextEditingController();
 
   @override
@@ -177,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen>
       final adminTags = await TagApi.instance.fetchAdminTags();
       final adminTagsMap = {
         for (var tag in adminTags)
-          if (tag.id != null) tag.id!: tag.tagName,
+          if (tag.id != null) tag.id!: tag.tagname ?? '',
       };
 
       if (Get.isRegistered<ConnectionController>()) {
@@ -186,18 +192,26 @@ class _HomeScreenState extends State<HomeScreen>
 
         final resolvedNames = tags
             .map<String>((t) {
+              log("DEBUG VENDOR TAG: tagId=${t.id}, adminTag=${t.adminTag}, region=${t.region}");
+              
               final tagId = t.adminTag?.toString();
               if (tagId != null && adminTagsMap.containsKey(tagId)) {
-                final name = adminTagsMap[tagId]!;
+                String name = adminTagsMap[tagId]!;
+                if (t.region != null && t.region!.trim().isNotEmpty) {
+                  name = "$name (${t.region!.trim()})";
+                }
+                
                 if (t.id != null) {
                   connectionController.sellerTagIds[name] = t.id!;
                 }
                 return name;
               }
+              
+              String name = t.tagName;
               if (t.id != null) {
-                connectionController.sellerTagIds[t.tagName] = t.id!;
+                connectionController.sellerTagIds[name] = t.id!;
               }
-              return t.tagName;
+              return name;
             })
             .where((name) => name.isNotEmpty)
             .toList();
@@ -225,185 +239,6 @@ class _HomeScreenState extends State<HomeScreen>
     _supportMsgController.dispose();
 
     super.dispose();
-  }
-
-  void _showAddTagPopup() {
-    final connectionController = Get.find<ConnectionController>();
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: Get.isRegistered<ThemeController>()
-            ? Get.find<ThemeController>().cardBackground
-            : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        title: Text(
-          "Add Vendor Tag",
-          style: TextStyle(
-            color: Get.isRegistered<ThemeController>()
-                ? Get.find<ThemeController>().textColor
-                : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: SizedBox(
-          width: 300.w,
-          child: DropdownSearch<Results>(
-            asyncItems: (String filter) =>
-                TagApi.instance.fetchAdminTags(query: filter),
-            itemAsString: (Results? u) => u?.tagName ?? "",
-            dropdownBuilder: (context, selectedItem) {
-              return Text(
-                selectedItem != null && selectedItem.tagName.isNotEmpty
-                    ? selectedItem.tagName
-                    : "Choose tag",
-                style: TextStyle(
-                  color: Get.isRegistered<ThemeController>()
-                      ? Get.find<ThemeController>().textColor
-                      : Colors.black,
-                ),
-              );
-            },
-            onChanged: (Results? data) async {
-              if (data != null && data.id != null) {
-                if (connectionController.sellerTags.contains(data.tagName)) {
-                  Get.snackbar(
-                    "Already Added",
-                    "This tag is already added to your store.",
-                    colorText: Colors.white,
-                    backgroundColor: Colors.orangeAccent.withOpacity(0.8),
-                  );
-                  return;
-                }
-
-                bool success = await TagApi.instance.postVendorTag(data.id!);
-                if (success) {
-                  _loadVendorTagsFromApi();
-                  Get.back();
-                  Get.snackbar(
-                    "Tag Added",
-                    "Successfully added tag: #${data.tagName}",
-                    colorText: Colors.white,
-                    backgroundColor: Colors.greenAccent.withOpacity(0.8),
-                  );
-                } else {
-                  Get.snackbar(
-                    "Error",
-                    "Failed to save tag to server.",
-                    colorText: Colors.white,
-                    backgroundColor: Colors.redAccent.withOpacity(0.8),
-                  );
-                }
-              }
-            },
-            popupProps: PopupProps.dialog(
-              showSearchBox: true,
-              itemBuilder: (context, item, isSelected) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Text(
-                    item.tagName,
-                    style: TextStyle(
-                      color: Get.isRegistered<ThemeController>()
-                          ? Get.find<ThemeController>().textColor
-                          : Colors.black,
-                      fontSize: 14,
-                    ),
-                  ),
-                );
-              },
-              title: Padding(
-                padding: EdgeInsets.all(12),
-                child: Text(
-                  "Select Tag",
-                  style: TextStyle(
-                    color: Get.isRegistered<ThemeController>()
-                        ? Get.find<ThemeController>().textSecondaryColor
-                        : Colors.black54,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              searchFieldProps: TextFieldProps(
-                style: TextStyle(
-                  color: Get.isRegistered<ThemeController>()
-                      ? Get.find<ThemeController>().textColor
-                      : Colors.black,
-                ),
-                decoration: InputDecoration(
-                  hintText: "Search tag...",
-                  hintStyle: TextStyle(
-                    color: Get.isRegistered<ThemeController>()
-                        ? Get.find<ThemeController>().inputHintColor
-                        : Colors.white30,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Get.isRegistered<ThemeController>()
-                        ? Get.find<ThemeController>().textSecondaryColor
-                        : Colors.black54,
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Get.isRegistered<ThemeController>()
-                          ? Get.find<ThemeController>().dividerColor
-                          : Colors.black12,
-                    ),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.c053A4CA),
-                  ),
-                ),
-              ),
-              containerBuilder: (context, popupWidget) {
-                return Container(
-                  color: Get.isRegistered<ThemeController>()
-                      ? Get.find<ThemeController>().cardBackground
-                      : const Color(0xFF1A1833),
-                  child: popupWidget,
-                );
-              },
-            ),
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              dropdownSearchDecoration: InputDecoration(
-                labelText: "Choose tag",
-                labelStyle: TextStyle(
-                  color: Get.isRegistered<ThemeController>()
-                      ? Get.find<ThemeController>().textSecondaryColor
-                      : Colors.black54,
-                ),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Get.isRegistered<ThemeController>()
-                        ? Get.find<ThemeController>().dividerColor
-                        : Colors.black12,
-                  ),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.c053A4CA),
-                ),
-              ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text(
-              "Cancel",
-              style: TextStyle(
-                color: Get.isRegistered<ThemeController>()
-                    ? Get.find<ThemeController>().textSecondaryColor
-                    : Colors.black54,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   void _generateMockReport(String title) {
@@ -801,7 +636,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       .withOpacity(0.8),
                                 );
                               },
-                              onAddTag: _showAddTagPopup,
+                              onAddTag: _showCustomAddTagDialog,
                               onRemoveTag: (tagName, tagId) async {
                                 try {
                                   EasyLoading.show(status: 'Removing tag...');
@@ -1295,6 +1130,259 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showCustomAddTagDialog() async {
+    final result = await Get.dialog<bool>(
+      const _CustomAddTagDialog(),
+      barrierDismissible: true,
+    );
+    if (result == true) {
+      _loadVendorTagsFromApi();
+    }
+  }
+}
+
+class _CustomAddTagDialog extends StatefulWidget {
+  const _CustomAddTagDialog({Key? key}) : super(key: key);
+
+  @override
+  State<_CustomAddTagDialog> createState() => _CustomAddTagDialogState();
+}
+
+class _CustomAddTagDialogState extends State<_CustomAddTagDialog> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Results> _allTags = [];
+  List<Results> _filteredTags = [];
+  bool _isLoading = true;
+  
+  // Maps Tag ID to a single selected region
+  final Map<String, String> _selectedRegions = {};
+  // The currently selected Tag ID (only 1 allowed at a time)
+  String? _selectedTagId;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTags();
+  }
+
+  void _fetchTags([String query = '']) async {
+    setState(() => _isLoading = true);
+    try {
+      final tags = await TagApi.instance.fetchAdminTags(query: query);
+      setState(() {
+        _allTags = tags;
+        _filteredTags = tags;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _filterTags(String query) {
+    if (query.isEmpty) {
+      setState(() => _filteredTags = _allTags);
+      return;
+    }
+    setState(() {
+      _filteredTags = _allTags.where((tag) => 
+        (tag.tagName).toLowerCase().contains(query.toLowerCase())
+      ).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        width: 320,
+        height: 500,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Select Tag",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _searchController,
+              onChanged: _filterTags,
+              decoration: InputDecoration(
+                hintText: "Search tag...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    itemCount: _filteredTags.length,
+                    separatorBuilder: (context, index) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final item = _filteredTags[index];
+                      final tagId = item.id ?? '';
+                      String mainTag = item.tagName;
+                      String subTagsStr = "";
+                      
+                      if (mainTag.contains('(') && mainTag.endsWith(')')) {
+                        int openParen = mainTag.indexOf('(');
+                        subTagsStr = mainTag.substring(openParen + 1, mainTag.length - 1);
+                        mainTag = mainTag.substring(0, openParen).trim();
+                      }
+
+                      final isTagSelected = _selectedTagId == tagId;
+                      final selectedRegionForThisTag = _selectedRegions[tagId];
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    mainTag,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (subTagsStr.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
+                                      children: subTagsStr.split(',').map((t) {
+                                        final region = t.trim();
+                                        final isRegionSelected = selectedRegionForThisTag == region;
+                                        
+                                        return FilterChip(
+                                          label: Text(
+                                            region,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isRegionSelected ? Colors.white : AppColors.c053A4CA,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          selected: isRegionSelected,
+                                          onSelected: (bool selected) {
+                                            setState(() {
+                                              if (selected) {
+                                                _selectedRegions[tagId] = region;
+                                                _selectedTagId = tagId; // Auto-select tag, replacing any previously selected tag
+                                              } else {
+                                                if (_selectedRegions[tagId] == region) {
+                                                  _selectedRegions.remove(tagId);
+                                                  if (_selectedTagId == tagId) {
+                                                    _selectedTagId = null; // Auto-deselect if no regions
+                                                  }
+                                                }
+                                              }
+                                            });
+                                          },
+                                          selectedColor: AppColors.c053A4CA,
+                                          backgroundColor: AppColors.c053A4CA.withOpacity(0.15),
+                                          checkmarkColor: Colors.white,
+                                          showCheckmark: false,
+                                          padding: EdgeInsets.zero,
+                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                            side: BorderSide(color: AppColors.c053A4CA.withOpacity(0.3)),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            Checkbox(
+                              value: isTagSelected,
+                              activeColor: AppColors.c053A4CA,
+                              shape: const CircleBorder(), // Makes it look like a radio button
+                              onChanged: (val) {
+                                setState(() {
+                                  if (val == true) {
+                                    _selectedTagId = tagId;
+                                  } else {
+                                    if (_selectedTagId == tagId) {
+                                      _selectedTagId = null;
+                                      _selectedRegions.remove(tagId);
+                                    }
+                                  }
+                                });
+                              },
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (_selectedTagId == null) {
+                    Get.back();
+                    return;
+                  }
+                  
+                  int addedCount = 0;
+                  final connController = Get.isRegistered<ConnectionController>() 
+                      ? Get.find<ConnectionController>() 
+                      : null;
+                      
+                  final tagId = _selectedTagId!;
+                  final tagData = _allTags.firstWhere((t) => t.id == tagId);
+                  
+                  if (connController == null || !connController.sellerTags.contains(tagData.tagName)) {
+                    String? regionStr = _selectedRegions[tagId];
+                    
+                    bool success = await TagApi.instance.postVendorTag(tagId, region: regionStr);
+                    if (success) addedCount++;
+                  }
+                  
+                  // Instead of _loadVendorTagsFromApi() we could trigger a callback, 
+                  // but we can just pop the dialog and tell HomeScreen to refresh.
+                  Get.back(result: true); 
+                  
+                  if (addedCount > 0) {
+                    Get.snackbar(
+                      "Tags Added",
+                      "Successfully added $addedCount tags.",
+                      colorText: Colors.white,
+                      backgroundColor: Colors.greenAccent.withOpacity(0.8),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.c053A4CA,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: const Text("Add Selected Tags", style: TextStyle(color: Colors.white, fontSize: 16)),
+              ),
+            ),
+          ],
         ),
       ),
     );

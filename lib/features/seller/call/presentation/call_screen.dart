@@ -15,6 +15,7 @@ import 'package:bd_shope_combined/common_widgets/glass_card.dart';
 import 'package:bd_shope_combined/networks/dio/dio.dart';
 import 'package:bd_shope_combined/helpers/di.dart';
 import 'package:bd_shope_combined/constants/app_constants.dart';
+import 'package:bd_shope_combined/features/seller/home/presentation/create_invoice_screen.dart';
 
 import 'data/call_controller.dart';
 import 'package:bd_shope_combined/services/agora_service.dart';
@@ -29,7 +30,7 @@ class CallScreen extends StatefulWidget {
 class _CallScreenState extends State<CallScreen> {
   late String _buyerName;
   late String _buyerId;
-  
+
   bool _isMuted = false;
   bool _isSpeakerOn = false;
   bool _isCameraOff = false;
@@ -40,6 +41,9 @@ class _CallScreenState extends State<CallScreen> {
   final _quantityController = TextEditingController();
   final _deliveryController = TextEditingController();
   final _priceController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _noteController = TextEditingController();
 
   final int _secondsElapsed = 0;
 
@@ -58,7 +62,7 @@ class _CallScreenState extends State<CallScreen> {
         Get.find<CallController>().isCallScreenVisible.value = true;
       }
     });
-    
+
     // Get arguments or fallback to controller or default
     final args = Get.arguments as Map<String, dynamic>?;
     if (args != null) {
@@ -66,12 +70,18 @@ class _CallScreenState extends State<CallScreen> {
       _buyerId = args['buyerId'] ?? 'BYR-0981';
     } else if (Get.isRegistered<CallController>()) {
       final callCtrl = Get.find<CallController>();
-      _buyerName = callCtrl.currentCustomerId.value.isNotEmpty ? callCtrl.currentCustomerId.value : 'Customer';
-      _buyerId = callCtrl.currentCallId.value.isNotEmpty ? callCtrl.currentCallId.value : 'CALL-WS';
+      _buyerName = callCtrl.currentCustomerId.value.isNotEmpty
+          ? callCtrl.currentCustomerId.value
+          : 'Customer';
+      _buyerId = callCtrl.currentCallId.value.isNotEmpty
+          ? callCtrl.currentCallId.value
+          : 'CALL-WS';
     } else if (Get.isRegistered<ConnectionController>()) {
       final connCtrl = Get.find<ConnectionController>();
       _buyerName = connCtrl.connectedSeller.value?.name ?? 'Seller';
-      _buyerId = connCtrl.currentSessionId.value.isNotEmpty ? connCtrl.currentSessionId.value : 'CALL-WS';
+      _buyerId = connCtrl.currentSessionId.value.isNotEmpty
+          ? connCtrl.currentSessionId.value
+          : 'CALL-WS';
     } else {
       _buyerName = 'Rahat Islam';
       _buyerId = 'BYR-0981';
@@ -89,6 +99,9 @@ class _CallScreenState extends State<CallScreen> {
     _quantityController.dispose();
     _deliveryController.dispose();
     _priceController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _noteController.dispose();
     super.dispose();
   }
 
@@ -115,7 +128,9 @@ class _CallScreenState extends State<CallScreen> {
     final name = _prodNameController.text.trim();
     final qtyText = _quantityController.text.trim();
     final priceText = _priceController.text.trim();
-    final note = "";
+    final note = _noteController.text.trim();
+    final phone = _phoneController.text.trim();
+    final address = _addressController.text.trim();
 
     if (name.isEmpty || qtyText.isEmpty || priceText.isEmpty) {
       Get.snackbar(
@@ -130,8 +145,12 @@ class _CallScreenState extends State<CallScreen> {
     final qty = int.tryParse(qtyText) ?? 1;
     final priceVal = double.tryParse(priceText) ?? 0.0;
 
-    final callController = Get.isRegistered<CallController>() ? Get.find<CallController>() : null;
-    final sessionId = callController?.currentCallId.value ?? "98765432-abcd-efgh-ijkl-1234567890ab";
+    final callController = Get.isRegistered<CallController>()
+        ? Get.find<CallController>()
+        : null;
+    final sessionId =
+        callController?.currentCallId.value ??
+        "98765432-abcd-efgh-ijkl-1234567890ab";
 
     final channelName = AgoraService.to.currentChannelId ?? "call_room_xyz123";
     final uuid = _generateDynamicUUID();
@@ -143,7 +162,9 @@ class _CallScreenState extends State<CallScreen> {
 
     final payload = {
       "id": uuid,
-      "session": sessionId.isNotEmpty ? sessionId : "98765432-abcd-efgh-ijkl-1234567890ab",
+      "session": sessionId.isNotEmpty
+          ? sessionId
+          : "98765432-abcd-efgh-ijkl-1234567890ab",
       "channel_name": channelName,
       "buyer": buyerId,
       "vendor": vendorId,
@@ -152,6 +173,8 @@ class _CallScreenState extends State<CallScreen> {
       "price": priceVal.toStringAsFixed(2),
       "quantity": qty,
       "note": note.isNotEmpty ? note : "No extra notes.",
+      if (phone.isNotEmpty) "phone_number": phone,
+      if (address.isNotEmpty) "address": address,
       "is_processed": false,
       "created_at": DateTime.now().toUtc().toIso8601String(),
       "updated_at": DateTime.now().toUtc().toIso8601String(),
@@ -160,15 +183,15 @@ class _CallScreenState extends State<CallScreen> {
     try {
       final response = await postHttp("/invoice/short-notes/", payload);
       if (response.statusCode == 200 || response.statusCode == 201) {
-        Get.back(result: {
-          "id": uuid,
-          "buyer": _buyerName,
-          "item": name,
-          "qty": qty,
-          "delivery": 0,
-          "status": "Success",
-          "date": "Just now"
+        setState(() {
+          _isCreatingInvoice = false;
         });
+        _prodNameController.clear();
+        _quantityController.clear();
+        _priceController.clear();
+        _phoneController.clear();
+        _addressController.clear();
+        _noteController.clear();
 
         Get.snackbar(
           "Invoice Created",
@@ -195,24 +218,28 @@ class _CallScreenState extends State<CallScreen> {
     final agoraService = AgoraService.to;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: const Color(0xFF141424),
       body: Stack(
         children: [
-            // Remote Video (Full Screen Background)
-            Positioned.fill(
-              child: Obx(() {
-                final remoteUidVal = agoraService.remoteUid.value;
-                final hasRemoteVideo = remoteUidVal != null;
-                return hasRemoteVideo
-                    ? AgoraVideoView(
-                        controller: VideoViewController.remote(
-                          rtcEngine: agoraService.engine!,
-                          canvas: VideoCanvas(uid: remoteUidVal),
-                          connection: RtcConnection(channelId: agoraService.currentChannelId),
+          // Remote Video (Full Screen Background)
+          Positioned.fill(
+            child: Obx(() {
+              final remoteUidVal = agoraService.remoteUid.value;
+              final hasRemoteVideo = remoteUidVal != null;
+              return hasRemoteVideo
+                  ? AgoraVideoView(
+                      controller: VideoViewController.remote(
+                        rtcEngine: agoraService.engine!,
+                        canvas: VideoCanvas(uid: remoteUidVal),
+                        connection: RtcConnection(
+                          channelId: agoraService.currentChannelId,
                         ),
-                      )
-                    : Container(
-                      color: const Color(0xFF141424), // Dark Messenger style background
+                      ),
+                    )
+                  : Container(
+                      color: const Color(
+                        0xFF141424,
+                      ), // Dark Messenger style background
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -225,20 +252,27 @@ class _CallScreenState extends State<CallScreen> {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+                                    color: Get.isRegistered<ThemeController>()
+                                        ? Get.find<ThemeController>()
+                                              .cardBackground
+                                        : Colors.white.withOpacity(0.05),
                                     blurRadius: 30,
                                     spreadRadius: 10,
-                                  )
+                                  ),
                                 ],
                               ),
                               child: Get.isRegistered<CallController>()
                                   ? Obx(() {
-                                      final imgUrl = Get.find<CallController>().currentCustomerImage.value;
+                                      final imgUrl = Get.find<CallController>()
+                                          .currentCustomerImage
+                                          .value;
                                       if (imgUrl.isNotEmpty) {
                                         if (imgUrl.startsWith('http')) {
                                           return CircleAvatar(
                                             radius: 60.r,
-                                            backgroundImage: NetworkImage(imgUrl),
+                                            backgroundImage: NetworkImage(
+                                              imgUrl,
+                                            ),
                                             backgroundColor: Colors.black12,
                                           );
                                         } else {
@@ -252,13 +286,21 @@ class _CallScreenState extends State<CallScreen> {
                                       return CircleAvatar(
                                         radius: 60.r,
                                         backgroundColor: Colors.white24,
-                                        child: Icon(Icons.person, size: 60.sp, color: Colors.white),
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 60.sp,
+                                          color: Colors.white,
+                                        ),
                                       );
                                     })
                                   : CircleAvatar(
                                       radius: 60.r,
                                       backgroundColor: Colors.white24,
-                                      child: Icon(Icons.person, size: 60.sp, color: Colors.white),
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 60.sp,
+                                        color: Colors.white,
+                                      ),
                                     ),
                             ),
                             SizedBox(height: 24.h),
@@ -272,215 +314,302 @@ class _CallScreenState extends State<CallScreen> {
                             ),
                             SizedBox(height: 6.h),
                             Get.isRegistered<CallController>()
-                                ? Obx(() => Text(
+                                ? Obx(
+                                    () => Text(
                                       "Connected • ${Get.find<CallController>().callTimerString.value}",
                                       style: GoogleFonts.poppins(
                                         color: Colors.white.withOpacity(0.8),
                                         fontSize: 14.sp,
                                       ),
-                                    ))
-                                : Text(
-                                      "Connected • 00:00",
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.white.withOpacity(0.8),
-                                        fontSize: 14.sp,
-                                      ),
                                     ),
+                                  )
+                                : Text(
+                                    "Connected • 00:00",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white.withOpacity(0.8),
+                                      fontSize: 14.sp,
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
                     );
-              }),
-            ),
+            }),
+          ),
 
-            // Top Info Bar & Minimization (Messenger Style)
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 30),
-                            onPressed: () => Get.back(),
+          // Top Info Bar & Minimization (Messenger Style)
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.white,
+                            size: 30,
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                _buyerName,
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w600,
-                                  shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
-                                ),
+                          onPressed: () => Get.back(),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              _buyerName,
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                shadows: const [
+                                  Shadow(blurRadius: 10, color: Colors.black87),
+                                ],
                               ),
-                              SizedBox(height: 2.h),
-                              Get.isRegistered<CallController>()
-                                  ? Obx(() => Text(
-                                        Get.find<CallController>().callTimerString.value,
-                                        style: GoogleFonts.poppins(
-                                          color: Colors.white.withOpacity(0.9),
-                                          fontSize: 13.sp,
-                                          shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
-                                        ),
-                                      ))
-                                  : Get.isRegistered<ConnectionController>()
-                                      ? Obx(() => Text(
-                                            Get.find<ConnectionController>().callTimerString.value,
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white.withOpacity(0.9),
-                                              fontSize: 13.sp,
-                                              shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
-                                            ),
-                                          ))
-                                      : Text(
-                                            '00:00',
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white.withOpacity(0.9),
-                                              fontSize: 13.sp,
-                                              shadows: const [Shadow(blurRadius: 10, color: Colors.black87)],
-                                            ),
+                            ),
+                            SizedBox(height: 2.h),
+                            Get.isRegistered<CallController>()
+                                ? Obx(
+                                    () => Text(
+                                      Get.find<CallController>()
+                                          .callTimerString
+                                          .value,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 13.sp,
+                                        shadows: const [
+                                          Shadow(
+                                            blurRadius: 10,
+                                            color: Colors.black87,
                                           ),
-                            ],
-                          ),
-                          SizedBox(width: 48.w), // Spacer to balance back button
-                        ],
-                      ),
-                    ],
-                  ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : Get.isRegistered<ConnectionController>()
+                                ? Obx(
+                                    () => Text(
+                                      Get.find<ConnectionController>()
+                                          .callTimerString
+                                          .value,
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 13.sp,
+                                        shadows: const [
+                                          Shadow(
+                                            blurRadius: 10,
+                                            color: Colors.black87,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    '00:00',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 13.sp,
+                                      shadows: const [
+                                        Shadow(
+                                          blurRadius: 10,
+                                          color: Colors.black87,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                          ],
+                        ),
+                        SizedBox(width: 48.w), // Spacer to balance back button
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
+          ),
 
-            // Local Camera Preview (Picture-in-picture overlay)
-            if (!_isCameraOff && agoraService.engine != null)
-              Positioned(
-                top: 100.h,
-                right: 16.w,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: Container(
-                    width: 100.w,
-                    height: 150.h,
-                    color: Colors.black45,
-                    child: AgoraVideoView(
-                      controller: VideoViewController(
-                        rtcEngine: agoraService.engine!,
-                        canvas: const VideoCanvas(uid: 0),
-                      ),
+          // Local Camera Preview (Picture-in-picture overlay)
+          if (!_isCameraOff && agoraService.engine != null)
+            Positioned(
+              top: 100.h,
+              right: 16.w,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: Container(
+                  width: 100.w,
+                  height: 150.h,
+                  color: Colors.black45,
+                  child: AgoraVideoView(
+                    controller: VideoViewController(
+                      rtcEngine: agoraService.engine!,
+                      canvas: const VideoCanvas(uid: 0),
                     ),
                   ),
                 ),
               ),
+            ),
 
-            // Floating Create Invoice Button & Controls Overlay
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 40.h,
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-
-                      // Controls Row (Messenger Style)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          // Camera toggle
-                          _buildMessengerIconButton(
-                            icon: _isCameraOff ? Icons.videocam_off_rounded : Icons.videocam_rounded,
-                            isActive: !_isCameraOff,
-                            onTap: () {
-                              setState(() {
-                                _isCameraOff = !_isCameraOff;
-                              });
-                              agoraService.muteLocalVideo(_isCameraOff);
-                            },
-                          ),
-                          // Switch Camera Button
-                          if (!_isCameraOff)
-                            _buildMessengerIconButton(
-                              icon: Icons.flip_camera_ios_rounded,
-                              isActive: false,
-                              onTap: () {
-                                agoraService.switchCamera();
-                              },
+          // Floating Create Invoice Button & Controls Overlay
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 40.h,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Create Invoice Button
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 16.h),
+                    child: GestureDetector(
+                      onTap: () {
+                        Get.to(() => CreateInvoiceScreen(
+                          initialLog: {
+                            "buyer": _buyerName,
+                            "buyerId": _buyerId,
+                            "isFromCall": true,
+                            "sessionId": Get.find<CallController>().currentCallId.value,
+                            "channelName": AgoraService.to.currentChannelId ?? "call_room_xyz123",
+                          },
+                          onCreateInvoice: (newInvoice) {
+                            // Invoice created successfully
+                          },
+                        ));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.allPrimaryColor.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.receipt_long,
+                              color: Colors.white,
+                              size: 20.r,
                             ),
-                          // Mute audio
-                          _buildMessengerIconButton(
-                            icon: _isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                            isActive: !_isMuted,
-                            onTap: () {
-                              setState(() {
-                                _isMuted = !_isMuted;
-                              });
-                              agoraService.muteLocalAudio(_isMuted);
-                            },
-                          ),
-                          // Speaker phone
-                          _buildMessengerIconButton(
-                            icon: _isSpeakerOn ? Icons.volume_up_rounded : Icons.volume_down_rounded,
-                            isActive: _isSpeakerOn,
-                            onTap: () {
-                              setState(() {
-                                _isSpeakerOn = !_isSpeakerOn;
-                              });
-                              agoraService.enableSpeakerphone(_isSpeakerOn);
-                            },
-                          ),
-                          // End Call
-                          GestureDetector(
-                            onTap: () {
-                              if (Get.isRegistered<CallController>()) {
-                                Get.find<CallController>().endCall();
-                              } else if (Get.isRegistered<ConnectionController>()) {
-                                Get.find<ConnectionController>().endCall();
-                                Get.back(result: {'callEnded': true});
-                              } else {
-                                Get.back(result: {
-                                  'callEnded': true,
-                                  'duration': _formatDuration(_secondsElapsed),
-                                });
-                              }
-                            },
-                            child: Container(
-                              width: 60.r,
-                              height: 60.r,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.red,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  )
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.call_end_rounded,
+                            SizedBox(width: 8.w),
+                            Text(
+                              "Create Invoice",
+                              style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                size: 28,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Controls Row (Messenger Style)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Camera toggle
+                      _buildMessengerIconButton(
+                        icon: _isCameraOff
+                            ? Icons.videocam_off_rounded
+                            : Icons.videocam_rounded,
+                        isActive: !_isCameraOff,
+                        onTap: () {
+                          setState(() {
+                            _isCameraOff = !_isCameraOff;
+                          });
+                          agoraService.muteLocalVideo(_isCameraOff);
+                        },
+                      ),
+                      // Switch Camera Button
+                      if (!_isCameraOff)
+                        _buildMessengerIconButton(
+                          icon: Icons.flip_camera_ios_rounded,
+                          isActive: false,
+                          onTap: () {
+                            agoraService.switchCamera();
+                          },
+                        ),
+                      // Mute audio
+                      _buildMessengerIconButton(
+                        icon: _isMuted
+                            ? Icons.mic_off_rounded
+                            : Icons.mic_rounded,
+                        isActive: !_isMuted,
+                        onTap: () {
+                          setState(() {
+                            _isMuted = !_isMuted;
+                          });
+                          agoraService.muteLocalAudio(_isMuted);
+                        },
+                      ),
+                      // Speaker phone
+                      _buildMessengerIconButton(
+                        icon: _isSpeakerOn
+                            ? Icons.volume_up_rounded
+                            : Icons.volume_down_rounded,
+                        isActive: _isSpeakerOn,
+                        onTap: () {
+                          setState(() {
+                            _isSpeakerOn = !_isSpeakerOn;
+                          });
+                          agoraService.enableSpeakerphone(_isSpeakerOn);
+                        },
+                      ),
+                      // End Call
+                      GestureDetector(
+                        onTap: () {
+                          if (Get.isRegistered<CallController>()) {
+                            Get.find<CallController>().endCall();
+                          } else if (Get.isRegistered<ConnectionController>()) {
+                            Get.find<ConnectionController>().endCall();
+                            Get.back(result: {'callEnded': true});
+                          } else {
+                            Get.back(
+                              result: {
+                                'callEnded': true,
+                                'duration': _formatDuration(_secondsElapsed),
+                              },
+                            );
+                          }
+                        },
+                        child: Container(
+                          width: 60.r,
+                          height: 60.r,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 10,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
                           ),
-                        ],
+                          child: const Icon(
+                            Icons.call_end_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
-          ],
-        ),
-      );
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMessengerIconButton({
@@ -522,7 +651,9 @@ class _CallScreenState extends State<CallScreen> {
         Text(
           label,
           style: TextStyle(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.8),
+            color: Get.isRegistered<ThemeController>()
+                ? Get.find<ThemeController>().textColor
+                : Colors.black.withOpacity(0.8),
             fontSize: 11.sp,
             fontWeight: FontWeight.bold,
           ),
@@ -530,18 +661,40 @@ class _CallScreenState extends State<CallScreen> {
         SizedBox(height: 4.h),
         Container(
           decoration: BoxDecoration(
-            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.05),
+            color: Get.isRegistered<ThemeController>()
+                ? Get.find<ThemeController>().cardBackground
+                : Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.15)),
+            border: Border.all(
+              color: Get.isRegistered<ThemeController>()
+                  ? Get.find<ThemeController>().dividerColor
+                  : Colors.black12.withOpacity(0.15),
+            ),
           ),
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
-            style: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black, fontSize: 13.sp),
+            style: TextStyle(
+              color: Get.isRegistered<ThemeController>()
+                  ? Get.find<ThemeController>().textColor
+                  : Colors.black,
+              fontSize: 13.sp,
+            ),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6), size: 18.sp),
+              prefixIcon: Icon(
+                icon,
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().textColor
+                    : Colors.black.withOpacity(0.6),
+                size: 18.sp,
+              ),
               hintText: hint,
-              hintStyle: TextStyle(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.35), fontSize: 13.sp),
+              hintStyle: TextStyle(
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().textColor
+                    : Colors.black.withOpacity(0.35),
+                fontSize: 13.sp,
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 10.h),
             ),
