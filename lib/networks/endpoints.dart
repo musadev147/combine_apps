@@ -19,7 +19,7 @@ final class Endpoints {
   // App Url
 
   static String register() => "/auth/register";
-  static String lookupRoles() => "/lookup/roles";
+  static String lookupRoles() => "/lookup/roles/";
   static String signIn() => "/auth/login";
   static String otpVerify() => "/auth/verify-otp";
   static String verifyOtp() => "/auth/verify-otp";

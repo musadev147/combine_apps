@@ -46,23 +46,23 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
 
   @override
   Future<bool> handleSuccessWithReturn(PostLoginModel data) async {
-    final roleId = data.user?.role?.toLowerCase() ?? "";
+    final roleId = data.user?.role ?? "";
     String roleName = roleId;
 
-    if (roleId.isNotEmpty && roleId.contains('-')) {
-      try {
-        final roles = await PostRegisterApi.instance.getRoles();
-        final role = roles.firstWhere((r) => r.id == roleId, orElse: () => PostRegisterRole());
-        if (role.value != null) {
-          roleName = role.value!.toLowerCase();
-        }
-      } catch (e) {
-        log("Role fetch error during login: $e");
-      }
+    if (roleId == kRoleBuyer) {
+      roleName = "buyer";
+    } else if (roleId == kRoleVendor) {
+      roleName = "vendor";
+    } else if (roleId == kRoleAdmin) {
+      roleName = "admin";
+    } else if (roleId == kRoleStaff) {
+      roleName = "staff";
     }
 
     if (roleName != 'vendor' && roleName != 'seller') {
-      AppToast.error("Role mismatch: Account is '$roleName', not Vendor. Please use the correct app.");
+      AppToast.error(
+        "Role mismatch: Account is '$roleName', not Vendor. Please use the correct app.",
+      );
       return false;
     }
 
@@ -89,8 +89,10 @@ class PostLoginRx extends RxResponseInt<PostLoginModel> {
     if (name.isNotEmpty) await appData.write(kKeyUserName, name);
     if (phone.isNotEmpty) await appData.write(kPhone, phone);
     if (image.isNotEmpty) await appData.write('avatar_path', image);
-    if (presentAddress.isNotEmpty) await appData.write('present_address', presentAddress);
-    if (permanentAddress.isNotEmpty) await appData.write('permanent_address', permanentAddress);
+    if (presentAddress.isNotEmpty)
+      await appData.write('present_address', presentAddress);
+    if (permanentAddress.isNotEmpty)
+      await appData.write('permanent_address', permanentAddress);
 
     DioSingleton.instance.update(accessToken);
 

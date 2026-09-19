@@ -71,6 +71,12 @@ const String kKeyISUser = 'customer';
 const String kKeyISTrainer = 'trainer';
 const String kEmail = 'kMail';
 
+// Role IDs
+const String kRoleBuyer = "37d3d63b-c79f-4eb8-a715-cf4ca45ef5bc";
+const String kRoleVendor = "de83d43c-171a-471b-acae-3e916055ebbb";
+const String kRoleAdmin = "4f026ad6-f8e6-4351-978a-3d5a209a7f70";
+const String kRoleStaff = "88bf1599-fa6b-4bfe-8b83-4cebedb69dea";
+
 class DefaultValue {
   static const bool kDefaultBoolean = false;
   static const int kDefaultInt = 0;

@@ -22,10 +22,7 @@ class PostVerifyOtpRx extends RxResponseInt<Map<String, dynamic>> {
   String _lastEmail = '';
   String _lastOtp = '';
 
-  PostVerifyOtpRx({
-    required super.empty,
-    required super.dataFetcher,
-  });
+  PostVerifyOtpRx({required super.empty, required super.dataFetcher});
 
   ValueStream<Map<String, dynamic>> get valueStreamData => dataFetcher.stream;
 
@@ -59,14 +56,14 @@ class PostVerifyOtpRx extends RxResponseInt<Map<String, dynamic>> {
     }
   }
 
-  Future<bool> resendOtp({
-    required String email,
-  }) async {
+  Future<bool> resendOtp({required String email}) async {
     try {
       await EasyLoading.show(status: 'Resending OTP...');
       final data = await api.resendOtp(email: email);
       await EasyLoading.dismiss();
-      AppToast.success(data['message']?.toString() ?? 'OTP Resent successfully');
+      AppToast.success(
+        data['message']?.toString() ?? 'OTP Resent successfully',
+      );
       return true;
     } catch (error) {
       await EasyLoading.dismiss();
@@ -84,17 +81,18 @@ class PostVerifyOtpRx extends RxResponseInt<Map<String, dynamic>> {
   @override
   Future<bool> handleSuccessWithReturn(Map<String, dynamic> data) async {
     AppToast.success("Verification Successful");
-    
+
     if (_isFromForgot) {
-      Get.offAllNamed(Routes.CREATE_PASSWORD, arguments: {
-        'email': _lastEmail,
-        'otp': _lastOtp,
-      });
+      Get.offAllNamed(
+        Routes.CREATE_PASSWORD,
+        arguments: {'email': _lastEmail, 'otp': _lastOtp},
+      );
       return true;
     }
 
     // Extract token/user if present in the response
-    final accessToken = data["access_token"] ?? data["token"] ?? data["accessToken"] ?? "";
+    final accessToken =
+        data["access_token"] ?? data["token"] ?? data["accessToken"] ?? "";
     final user = data["user"] as Map<String, dynamic>?;
     final id = user?["id"]?.toString() ?? "";
     final email = user?["email"]?.toString() ?? "";
@@ -102,20 +100,20 @@ class PostVerifyOtpRx extends RxResponseInt<Map<String, dynamic>> {
     String roleName = roleId;
 
     if (!_isFromForgot && !_fromRegister && roleId.isNotEmpty) {
-      if (roleId.contains('-')) {
-        try {
-          final roles = await GetRoleApi.instance.getRoles();
-          final role = roles.firstWhere((r) => r.id == roleId, orElse: () => GetRoleModel());
-          if (role.value != null) {
-            roleName = role.value!.toLowerCase();
-          }
-        } catch (e) {
-          log("Role fetch error during otp: $e");
-        }
+      if (roleId == kRoleBuyer) {
+        roleName = "buyer";
+      } else if (roleId == kRoleVendor) {
+        roleName = "vendor";
+      } else if (roleId == kRoleAdmin) {
+        roleName = "admin";
+      } else if (roleId == kRoleStaff) {
+        roleName = "staff";
       }
 
       if (roleName != 'customer' && roleName != 'buyer') {
-        AppToast.error("This account is not registered as a Customer. Please use the correct app.");
+        AppToast.error(
+          "This account is not registered as a Customer. Please use the correct app.",
+        );
         return false;
       }
     }

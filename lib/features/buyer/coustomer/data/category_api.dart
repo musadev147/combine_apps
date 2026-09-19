@@ -21,7 +21,9 @@ class CategoryApi {
           final model = AllCategoryModel.fromJson(data);
           return model.results ?? [];
         } else if (data is List) {
-          return data.map((json) => Results.fromJson(json as Map<String, dynamic>)).toList();
+          return data
+              .map((json) => Results.fromJson(json as Map<String, dynamic>))
+              .toList();
         }
         return [];
       } else {
@@ -33,14 +35,31 @@ class CategoryApi {
     }
   }
 
-  Future<List<AllSubCategoryModel>> fetchSubCategories(String categoryId) async {
+  Future<List<AllSubCategoryModel>> fetchSubCategories(
+    String categoryId,
+  ) async {
     try {
       final response = await getHttp(Endpoints.subCategories(id: categoryId));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
+        log("RAW SUBCATEGORIES RESPONSE for $categoryId: $data");
         if (data is List) {
-          return data.map((json) => AllSubCategoryModel.fromJson(json as Map<String, dynamic>)).toList();
+          return data
+              .map(
+                (json) =>
+                    AllSubCategoryModel.fromJson(json as Map<String, dynamic>),
+              )
+              .toList();
+        } else if (data is Map<String, dynamic> &&
+            data.containsKey('results')) {
+          final results = data['results'] as List;
+          return results
+              .map(
+                (json) =>
+                    AllSubCategoryModel.fromJson(json as Map<String, dynamic>),
+              )
+              .toList();
         }
         return [];
       } else {
@@ -59,7 +78,19 @@ class CategoryApi {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = response.data;
         if (data is List) {
-          return data.map((json) => TrandingModel.fromJson(json as Map<String, dynamic>)).toList();
+          return data
+              .map(
+                (json) => TrandingModel.fromJson(json as Map<String, dynamic>),
+              )
+              .toList();
+        } else if (data is Map<String, dynamic> &&
+            data.containsKey('results')) {
+          final results = data['results'] as List;
+          return results
+              .map(
+                (json) => TrandingModel.fromJson(json as Map<String, dynamic>),
+              )
+              .toList();
         }
         return [];
       } else {

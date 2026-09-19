@@ -13,6 +13,7 @@ import 'model/register_role.dart';
 import 'dart:ui';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:bd_shope_combined/constants/app_constants.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -30,7 +31,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _presentAddressController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   File? _avatarFile;
   String? _selectedRoleId;
 
@@ -64,18 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onRegister() async {
     if (_formKey.currentState!.validate()) {
-      String? resolvedRole = _selectedRoleId;
-      if (resolvedRole == null) {
-        final rolesList = getRolesRx.valueStreamData.valueOrNull ?? [];
-        if (rolesList.isNotEmpty) {
-          final defaultRole = rolesList.firstWhere(
-            (role) => role.value?.toLowerCase() == 'buyer',
-            orElse: () => rolesList.first,
-          );
-          resolvedRole = defaultRole.id;
-        }
-      }
-      resolvedRole ??= 'buyer';
+      String resolvedRole = kRoleBuyer;
 
       final email = _emailController.text.trim();
       final phone = _phoneController.text.trim();
@@ -93,7 +83,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (success) {
-        Get.toNamed(Routes.OTP, arguments: {'email': email, 'fromRegister': true});
+        Get.toNamed(
+          Routes.OTP,
+          arguments: {'email': email, 'fromRegister': true},
+        );
       }
     }
   }
@@ -114,7 +107,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(height: 10.h),
                   IconButton(
                     onPressed: () => Get.back(),
-                    icon: Icon(Icons.arrow_back_ios, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black),
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().textColor
+                          : Colors.black,
+                    ),
                   ),
                   SizedBox(height: 16.h),
                   Text(
@@ -122,7 +120,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: GoogleFonts.outfit(
                       fontSize: 32.sp,
                       fontWeight: FontWeight.w700,
-                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().textColor
+                          : Colors.black,
                     ),
                   ),
                   SizedBox(height: 6.h),
@@ -130,7 +130,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     'Join the premium marketplace directly',
                     style: GoogleFonts.poppins(
                       fontSize: 14.sp,
-                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7),
+                      color: Get.isRegistered<ThemeController>()
+                          ? Get.find<ThemeController>().textColor
+                          : Colors.black.withOpacity(0.7),
                     ),
                   ),
                   SizedBox(height: 28.h),
@@ -150,7 +152,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF53A4CA).withOpacity(0.2),
+                                  color: const Color(
+                                    0xFF53A4CA,
+                                  ).withOpacity(0.2),
                                   blurRadius: 15,
                                   spreadRadius: 2,
                                 ),
@@ -158,13 +162,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             child: CircleAvatar(
                               radius: 50.r,
-                              backgroundColor: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
-                              backgroundImage: _avatarFile != null ? FileImage(_avatarFile!) : null,
+                              backgroundColor:
+                                  Get.isRegistered<ThemeController>()
+                                  ? Get.find<ThemeController>().cardBackground
+                                  : Colors.white.withOpacity(0.08),
+                              backgroundImage: _avatarFile != null
+                                  ? FileImage(_avatarFile!)
+                                  : null,
                               child: _avatarFile == null
                                   ? Icon(
                                       Icons.person,
                                       size: 50.r,
-                                      color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textSecondaryColor : Colors.black54,
+                                      color: Get.isRegistered<ThemeController>()
+                                          ? Get.find<ThemeController>()
+                                                .textSecondaryColor
+                                          : Colors.black54,
                                     )
                                   : null,
                             ),
@@ -181,7 +193,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               child: Icon(
                                 Icons.camera_alt_outlined,
                                 size: 16.r,
-                                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                                color: Get.isRegistered<ThemeController>()
+                                    ? Get.find<ThemeController>().textColor
+                                    : Colors.black,
                               ),
                             ),
                           ),
@@ -266,7 +280,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
 
-
                   // Password
                   GlassTextField(
                     controller: _passwordController,
@@ -318,7 +331,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Text(
                         "Already have an account? ",
                         style: GoogleFonts.poppins(
-                          color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.6),
+                          color: Get.isRegistered<ThemeController>()
+                              ? Get.find<ThemeController>().textColor
+                              : Colors.black.withOpacity(0.6),
                           fontSize: 13.sp,
                         ),
                       ),
@@ -327,7 +342,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Text(
                           'Log In',
                           style: GoogleFonts.poppins(
-                            color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                            color: Get.isRegistered<ThemeController>()
+                                ? Get.find<ThemeController>().textColor
+                                : Colors.black,
                             fontSize: 13.sp,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline,
@@ -377,10 +394,14 @@ class GlassDropdownField extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             decoration: BoxDecoration(
-              color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().cardBackground : Colors.white.withOpacity(0.08),
+              color: Get.isRegistered<ThemeController>()
+                  ? Get.find<ThemeController>().cardBackground
+                  : Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(20.r),
               border: Border.all(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().dividerColor : Colors.black12.withOpacity(0.2),
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().dividerColor
+                    : Colors.black12.withOpacity(0.2),
                 width: 1.5,
               ),
             ),
@@ -390,25 +411,40 @@ class GlassDropdownField extends StatelessWidget {
               onChanged: onChanged,
               validator: validator,
               dropdownColor: const Color(0xFF1E1E38),
-              icon: Icon(Icons.arrow_drop_down, color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7)),
+              icon: Icon(
+                Icons.arrow_drop_down,
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().textColor
+                    : Colors.black.withOpacity(0.7),
+              ),
               style: TextStyle(
-                color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black,
+                color: Get.isRegistered<ThemeController>()
+                    ? Get.find<ThemeController>().textColor
+                    : Colors.black,
                 fontSize: 15.sp,
                 fontWeight: FontWeight.w400,
               ),
               decoration: InputDecoration(
                 labelText: labelText,
                 labelStyle: TextStyle(
-                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7),
+                  color: Get.isRegistered<ThemeController>()
+                      ? Get.find<ThemeController>().textColor
+                      : Colors.black.withOpacity(0.7),
                   fontSize: 13.sp,
                 ),
                 hintText: hintText,
                 hintStyle: TextStyle(
-                  color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.4),
+                  color: Get.isRegistered<ThemeController>()
+                      ? Get.find<ThemeController>().textColor
+                      : Colors.black.withOpacity(0.4),
                   fontSize: 13.sp,
                 ),
                 prefixIcon: IconTheme(
-                  data: IconThemeData(color: Get.isRegistered<ThemeController>() ? Get.find<ThemeController>().textColor : Colors.black.withOpacity(0.7)),
+                  data: IconThemeData(
+                    color: Get.isRegistered<ThemeController>()
+                        ? Get.find<ThemeController>().textColor
+                        : Colors.black.withOpacity(0.7),
+                  ),
                   child: prefixIcon,
                 ),
                 border: InputBorder.none,
